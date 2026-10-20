@@ -156,17 +156,16 @@ nav.tabs::-webkit-scrollbar{display:none;}
 
 /* posição: embaixo ou em cima (horizontal) */
 nav.tabs.pos-bottom, nav.tabs.pos-top{
-  flex-direction:row; align-items:center; left:50%; max-width:94vw; max-height:70px;
+  flex-direction:row; align-items:center; left:50%; max-width:94vw; max-height:78px;
 }
 nav.tabs.pos-bottom{ bottom:calc(14px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); }
 nav.tabs.pos-top{ top:calc(14px + env(safe-area-inset-top,0px)); transform:translateX(-50%); }
 /* posição: lateral (vertical) */
 nav.tabs.pos-left, nav.tabs.pos-right{
-  flex-direction:column; align-items:stretch; top:50%; transform:translateY(-50%); max-height:80vh; width:62px;
+  flex-direction:column; align-items:stretch; top:50%; transform:translateY(-50%); max-height:80vh; width:max-content; max-width:84px; padding:0.35rem;
 }
 nav.tabs.pos-left{ left:10px; }
 nav.tabs.pos-right{ right:10px; }
-nav.tabs.pos-left.expanded, nav.tabs.pos-right.expanded{ width:178px; }
 
 nav.tabs button{
   font-family:inherit; font-size:0.78rem; padding:0.5rem 0.55rem; border-radius:14px;
@@ -176,18 +175,13 @@ nav.tabs button{
 nav.tabs button .icon{font-size:1.15rem; line-height:1;}
 nav.tabs button .icon svg, #sidebar-handle svg, #sidebar-toggle svg{display:block;}
 #sidebar-handle, #sidebar-toggle{display:flex; align-items:center; justify-content:center;}
-nav.tabs button .label{font-size:0.68rem; line-height:1;}
+nav.tabs button .label{font-size:0.64rem; line-height:1.05;}
 nav.tabs button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream); box-shadow:0 4px 12px -4px rgba(78,20,32,.6);}
 
 /* em cima/embaixo: ícone em cima, nome embaixo */
-nav.tabs.pos-bottom button, nav.tabs.pos-top button{flex-direction:column; align-items:center; gap:0.1rem;}
+nav.tabs.pos-bottom button, nav.tabs.pos-top button{flex-direction:column; align-items:center; gap:0.12rem; padding:0.4rem 0.35rem; min-width:46px;}
 /* lateral: ícone do lado, nome ao lado (depois) */
-nav.tabs.pos-left button, nav.tabs.pos-right button{flex-direction:row; align-items:center; gap:0.55rem;}
-
-/* recolhido: só ícone, sem nome */
-nav.tabs:not(.expanded) button .label{display:none;}
-nav.tabs:not(.expanded).pos-bottom button, nav.tabs:not(.expanded).pos-top button{padding:0.5rem;}
-nav.tabs:not(.expanded).pos-left button, nav.tabs:not(.expanded).pos-right button{padding:0.5rem; justify-content:center;}
+nav.tabs.pos-left button, nav.tabs.pos-right button{flex-direction:column; align-items:center; gap:0.12rem; padding:0.4rem 0.3rem;}
 
 #sidebar-handle{
   cursor:grab; text-align:center; padding:0.4rem 0.5rem; color:var(--gold); font-size:0.95rem;
@@ -199,7 +193,7 @@ nav.tabs.free{
   left:var(--dx,10px) !important; top:var(--dy,10px) !important;
   right:auto !important; bottom:auto !important; transform:none !important;
 }
-nav.tabs.free.pos-top, nav.tabs.free.pos-bottom{width:max-content;}
+nav.tabs.free{width:max-content;}
 nav.tabs.dragging{transition:none !important; cursor:grabbing; box-shadow:0 18px 40px -10px rgba(78,20,32,.45);}
 nav.tabs.dragging #sidebar-handle{cursor:grabbing;}
 #sidebar-toggle{
@@ -255,6 +249,9 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .mov-edit input, .mov-edit select{width:100%; min-width:0; padding:0.4rem 0.5rem; border-radius:10px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit; font-size:0.92rem; text-transform:none; letter-spacing:0; font-weight:400;}
 .mov-edit-nota{font-size:0.78rem; opacity:0.75; margin-top:0.5rem; line-height:1.4;}
 .mov-edit-acoes{display:flex; gap:0.5rem; margin-top:0.6rem;}
+.editor-fundo{position:fixed; inset:0; z-index:200; background:rgba(40,12,20,.45); display:flex; align-items:center; justify-content:center; padding:1rem;}
+.editor-box{width:100%; max-width:380px; margin:0; background:var(--card); box-shadow:var(--shadow); max-height:90vh; overflow:auto;}
+.editor-titulo{font-family:'Playfair Display',serif; font-size:1.05rem; color:var(--wine); margin:0 0 0.6rem;}
 .conta-card.paga{opacity:0.75;}
 .conta-topo{display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;}
 .conta-nome{font-family:'Playfair Display',serif; font-weight:700; color:var(--wine); font-size:1rem;}
@@ -343,7 +340,6 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
 </header>
 <nav class="tabs" id="sidebar">
   <button id="sidebar-handle" title="Arraste para mover · toque para trocar de lado"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></button>
-  <button id="sidebar-toggle" title="Expandir/recolher"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <button data-grupo="hoje" class="active"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="label">Hoje</span></button>
   <button data-grupo="comprar"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="label">Comprar</span></button>
   <button data-grupo="produzir"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="9.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="14.5" r=".9" fill="currentColor"/><circle cx="9.5" cy="14.5" r=".9" fill="currentColor"/></svg></span><span class="label">Produzir</span></button>
@@ -1502,7 +1498,7 @@ function renderCookies(){
       <td>${m.data}</td>
       <td>${NOME_SABOR[m.sabor] || m.sabor}</td>
       <td class="qty">${m.qtd}</td>
-      <td class="price" style="text-align:right;"><button class="rm-moldagem" data-id="${m.id}" style="${CK_BTN_RM}">Excluir</button></td>
+      <td class="price" style="text-align:right;"><button class="ed-mold" data-id="${m.id}" style="${CK_BTN_RM}">Editar</button> <button class="rm-moldagem" data-id="${m.id}" style="${CK_BTN_RM}">Excluir</button></td>
     </tr>`).join("");
 
   const linhasAjuste = sabores.map(s=>`<tr><td>${NOME_SABOR[s.id]||s.id}</td>
@@ -1576,6 +1572,13 @@ function renderCookies(){
     if (m2) m2.textContent = "Saldos salvos.";
   });
 
+  el.querySelectorAll(".ed-mold").forEach(btn=> btn.addEventListener("click", ()=>{
+    const id = parseFloat(btn.dataset.id), m = historicoMoldados.find(x=>x.id===id); if (!m) return;
+    abrirEditor({ titulo:"Editar moldagem",
+      campos:[{id:"dataISO",rotulo:"Data",tipo:"date",valor:m.dataISO||""},{id:"qtd",rotulo:"Quantidade",tipo:"number",valor:m.qtd},{id:"sabor",rotulo:"Sabor",tipo:"select",valor:m.sabor,opcoes:opcoesSabor(),larga:true}],
+      nota:"Mudar sabor ou quantidade devolve os ingredientes antigos ao estoque e desconta os novos.",
+      aoSalvar: v=>{ const e = editarMoldagem(id, v); if (!e) renderCookies(); return e; } });
+  }));
   el.querySelectorAll(".rm-moldagem").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const id = parseFloat(btn.dataset.id);
@@ -1618,7 +1621,7 @@ function renderProducao(){
       <td>${NOME_SABOR[f.sabor] || f.sabor}</td>
       <td class="qty">${f.bons}</td>
       <td class="qty">${f.perdidos}</td>
-      <td class="price" style="text-align:right;"><button class="rm-fornada" data-id="${f.id}" style="${CK_BTN_RM}">Excluir</button></td>
+      <td class="price" style="text-align:right;"><button class="ed-fornada" data-id="${f.id}" style="${CK_BTN_RM}">Editar</button> <button class="rm-fornada" data-id="${f.id}" style="${CK_BTN_RM}">Excluir</button></td>
     </tr>`).join("");
 
   el.innerHTML = `
@@ -1677,6 +1680,15 @@ function renderProducao(){
     if (m2){ m2.style.color = "var(--wine)"; m2.textContent = "Fornada registrada: saiu do congelador e os bons entraram em assados."; }
   });
 
+  el.querySelectorAll(".ed-fornada").forEach(btn=> btn.addEventListener("click", ()=>{
+    const id = parseFloat(btn.dataset.id), f = historicoProducao.find(x=>x.id===id); if (!f) return;
+    const nova = f.v === 2;
+    abrirEditor({ titulo:"Editar fornada",
+      campos:[{id:"dataISO",rotulo:"Data",tipo:"date",valor:f.dataISO||""}].concat(nova
+        ? [{id:"bons",rotulo:"Bons",tipo:"number",valor:f.bons},{id:"perdidos",rotulo:"Queimados",tipo:"number",valor:f.perdidos},{id:"sabor",rotulo:"Sabor",tipo:"select",valor:f.sabor,opcoes:opcoesSabor(),larga:true}] : []),
+      nota: nova ? "Mudar quantidade ou sabor acerta o congelador e os assados." : "Fornada antiga (de antes da separação): só dá para mudar a data.",
+      aoSalvar: v=>{ const e = editarFornada(id, v); if (!e) renderProducao(); return e; } });
+  }));
   el.querySelectorAll(".rm-fornada").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const id = parseFloat(btn.dataset.id);
@@ -1761,7 +1773,7 @@ function renderVendas(){
     const descr = v.tipo==="combo" ? `Combo: ${esc(v.comboNome)} (x${v.multiplicador})` : (nomesSabor[v.sabor]||v.sabor);
     const qtdMostrada = v.tipo==="combo" ? v.itens.reduce((s,it)=>s+it.qtd,0)*v.multiplicador : v.qtd;
     return `<tr><td>${v.data}</td><td>${descr}</td><td class="qty">${qtdMostrada}</td>
-    <td class="price" style="text-align:right;"><button class="rm-venda" data-id="${v.id}" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;">excluir</button></td></tr>`;
+    <td class="price" style="text-align:right;"><button class="ed-venda" data-id="${v.id}" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;">editar</button> <button class="rm-venda" data-id="${v.id}" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;">excluir</button></td></tr>`;
   }).join("");
 
   el.innerHTML = `
@@ -1918,6 +1930,13 @@ function renderVendas(){
     renderVendas();
   });
 
+  el.querySelectorAll(".ed-venda").forEach(btn=> btn.addEventListener("click", ()=>{
+    const id = parseFloat(btn.dataset.id), v = historicoVendas.find(x=>x.id===id); if (!v) return;
+    abrirEditor({ titulo:"Editar venda",
+      campos:[{id:"dataISO",rotulo:"Data",tipo:"date",valor:v.dataISO||"",larga:true}],
+      nota:"Muda a data da venda e do dinheiro dela no Caixa. Para mudar sabor ou quantidade, exclua a venda e lance de novo, porque isso mexe em estoque, custo e lucro.",
+      aoSalvar: x=>{ const e = editarVenda(id, x.dataISO); if (!e) renderVendas(); return e; } });
+  }));
   el.querySelectorAll(".rm-venda").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const id = parseFloat(btn.dataset.id);
@@ -1977,6 +1996,88 @@ function saldoDevidoSocios(){
     if (l.tipo==="saida" && l.categoria==="devolucao") devido -= l.valor;
   });
   return devido;
+}
+
+// ---- Caixinha de edição (serve para qualquer registro) ----
+function abrirEditor(cfg){
+  const antigo = document.getElementById("editor-fundo"); if (antigo) antigo.remove();
+  const f = document.createElement("div"); f.id = "editor-fundo"; f.className = "editor-fundo";
+  const campos = cfg.campos.map(c=>{
+    const ctl = c.tipo === "select"
+      ? `<select data-k="${c.id}">${c.opcoes.map(([v,t])=>`<option value="${esc(String(v))}" ${String(v)===String(c.valor)?"selected":""}>${esc(t)}</option>`).join("")}</select>`
+      : `<input data-k="${c.id}" type="${c.tipo}" ${c.tipo==="number" ? `step="${c.passo||1}" inputmode="decimal"` : ""} value="${esc(String(c.valor == null ? "" : c.valor))}">`;
+    return `<label class="${c.larga ? "larga" : ""}">${esc(c.rotulo)}${ctl}</label>`;
+  }).join("");
+  f.innerHTML = `<div class="mov-edit editor-box" role="dialog"><h3 class="editor-titulo">${esc(cfg.titulo)}</h3>
+    <div class="mov-edit-grid">${campos}</div>
+    ${cfg.nota ? `<div class="mov-edit-nota">${esc(cfg.nota)}</div>` : ""}
+    <div class="mov-edit-nota editor-erro" style="color:var(--wine);"></div>
+    <div class="mov-edit-acoes"><button class="btn-pri" data-acao="salvar" type="button">Salvar</button><button class="btn-sec" data-acao="cancelar" type="button">Cancelar</button></div></div>`;
+  document.body.appendChild(f);
+  const fechar = ()=> f.remove();
+  f.addEventListener("click", e=>{ if (e.target === f) fechar(); });
+  f.querySelector('[data-acao="cancelar"]').addEventListener("click", fechar);
+  f.querySelector('[data-acao="salvar"]').addEventListener("click", ()=>{
+    const vals = {}; f.querySelectorAll("[data-k]").forEach(i=>{ vals[i.dataset.k] = i.value; });
+    const erro = cfg.aoSalvar(vals);
+    if (erro){ f.querySelector(".editor-erro").textContent = erro; return; }
+    fechar();
+  });
+}
+function opcoesSabor(){ return sabores.map(x=>[x.id, NOME_SABOR[x.id] || x.id]); }
+
+// Editar moldagem: devolve o que a moldagem antiga gastou, aplica a nova (ingredientes e congelados)
+function editarMoldagem(id, c){
+  const m = historicoMoldados.find(x=>x.id === id);
+  const qtd = parseInt(c.qtd);
+  if (!m) return "Registro não encontrado.";
+  if (!(qtd > 0)) return "A quantidade precisa ser maior que zero.";
+  ajustarIngredientes(m.sabor, m.qtd, +1);
+  somaSaldo("congelados", m.sabor, -m.qtd);
+  ajustarIngredientes(c.sabor, qtd, -1);
+  somaSaldo("congelados", c.sabor, qtd);
+  m.sabor = c.sabor; m.qtd = qtd;
+  if (c.dataISO){ m.dataISO = c.dataISO; m.data = isoParaBR(c.dataISO); }
+  saveSaldoCookies(saldoCookies); saveMoldados(historicoMoldados);
+  return null;
+}
+// Editar fornada: fornada nova (v2) muda congelados e assados; fornada antiga só muda a data
+function editarFornada(id, c){
+  const f = historicoProducao.find(x=>x.id === id);
+  if (!f) return "Registro não encontrado.";
+  if (f.v === 2){
+    const bons = parseInt(c.bons) || 0, perdidos = parseInt(c.perdidos) || 0;
+    if (bons + perdidos <= 0) return "Digite quantos cookies saíram.";
+    somaSaldo("congelados", f.sabor, f.bons + f.perdidos);
+    somaSaldo("assados", f.sabor, -f.bons);
+    somaSaldo("congelados", c.sabor, -(bons + perdidos));
+    somaSaldo("assados", c.sabor, bons);
+    f.sabor = c.sabor; f.bons = bons; f.perdidos = perdidos;
+    saveSaldoCookies(saldoCookies);
+  }
+  if (c.dataISO){ f.dataISO = c.dataISO; f.data = isoParaBR(c.dataISO); }
+  saveProducao(historicoProducao);
+  return null;
+}
+// Editar venda: muda a data (e a data do dinheiro dela no Caixa)
+function editarVenda(id, dataISO){
+  const v = historicoVendas.find(x=>x.id === id);
+  if (!v) return "Registro não encontrado.";
+  if (!dataISO) return "Escolha a data.";
+  v.dataISO = dataISO; v.data = isoParaBR(dataISO);
+  historicoCaixa.forEach(l=>{ if (l.vendaId === id){ l.dataISO = dataISO; l.data = isoParaBR(dataISO); } });
+  saveVendas(historicoVendas); saveCaixa(historicoCaixa);
+  return null;
+}
+// Editar compra: muda a data (e a data da saída dela no Caixa)
+function editarCompra(id, dataISO){
+  const c = historicoCompras.find(x=>x.id === id);
+  if (!c) return "Registro não encontrado.";
+  if (!dataISO) return "Escolha a data.";
+  c.dataISO = dataISO; c.data = isoParaBR(dataISO);
+  historicoCaixa.forEach(l=>{ if (l.compraId === id){ l.dataISO = dataISO; l.data = isoParaBR(dataISO); } });
+  saveCompras(historicoCompras); saveCaixa(historicoCaixa);
+  return null;
 }
 
 let caixaEditandoId = null;
@@ -2467,7 +2568,7 @@ function renderComprar(aviso){
           <div class="conta-topo"><span class="conta-nome">${esc(c.data)}</span><span class="selo selo-pend">${c.total > 0 ? brl(c.total) : "sem valor"}</span></div>
           <div style="font-size:0.85rem; line-height:1.4;">${c.itens.map(d=>`${esc(d.nome)} · ${fmtQtdCompra(d.un, d.qtd)}${d.valor > 0 ? " · " + brl(d.valor) : ""}`).join("<br>")}</div>
           <div style="font-size:0.75rem; opacity:0.7;">${c.caixaId ? "Saída lançada no Caixa" : "Não foi para o Caixa"}</div>
-          <div class="conta-acoes"><button class="btn-sec cp-desfazer" data-id="${c.id}" type="button">Desfazer</button></div>
+          <div class="conta-acoes"><button class="btn-sec cp-editar" data-id="${c.id}" type="button">Editar data</button><button class="btn-sec cp-desfazer" data-id="${c.id}" type="button">Desfazer</button></div>
         </div>`).join("")}</div>` : `<div style="opacity:0.6; margin-top:0.5rem;">Nenhuma compra registrada ainda.</div>`}
     </div>
   `;
@@ -2560,6 +2661,13 @@ function renderComprar(aviso){
     renderComprar(`Compra registrada: ${esc(f.nome)}, ${fmtQtdCompra(info.un, f.qtdBase)}. Estoque agora ${fmtQtdCompra(info.un, r.estDepois)}; custo médio ${custoTxt}.${caixaTxt}`);
   });
 
+  el.querySelectorAll(".cp-editar").forEach(btn=> btn.addEventListener("click", ()=>{
+    const id = parseFloat(btn.dataset.id), c = historicoCompras.find(x=>x.id===id); if (!c) return;
+    abrirEditor({ titulo:"Editar compra",
+      campos:[{id:"dataISO",rotulo:"Data",tipo:"date",valor:c.dataISO||"",larga:true}],
+      nota:"Muda a data da compra e da saída dela no Caixa. Quantidade e valor não mudam aqui porque refazem o custo médio: para isso use Desfazer e registre de novo.",
+      aoSalvar: x=>{ const e = editarCompra(id, x.dataISO); if (!e) renderComprar(); return e; } });
+  }));
   el.querySelectorAll(".cp-desfazer").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const c = historicoCompras.find(x=> String(x.id) === btn.dataset.id);
@@ -2817,7 +2925,7 @@ function renderContas(){
     <div class="conta-card ${c.pago ? "paga" : ""}" data-chave="${esc(c.chave)}">
       <div class="conta-topo">
         <div class="conta-esq">
-          <span class="conta-nome">${esc(c.nome)}</span>
+          ${c.avulsa ? `<input class="cfg-mini conta-nome-inp" type="text" style="width:100%; font-weight:600;" value="${esc(c.nome)}">` : `<span class="conta-nome">${esc(c.nome)}</span>`}
           <span class="conta-sub"><span class="selo selo-${st.tipo}">${esc(st.txt)}</span><span>vence dia <input class="cfg-mini conta-dia" style="width:48px;" type="number" min="1" max="31" inputmode="numeric" placeholder="—" value="${esc(String(c.dia))}"></span></span>
         </div>
         <div class="conta-valor-box">R$ <input class="cfg-mini conta-valor" type="number" step="0.01" inputmode="decimal" value="${valorTxt}"></div>
@@ -2932,6 +3040,12 @@ function renderContas(){
     if (c.avulsa){ const a = registroMes(mes).avulsas.find(x=>x.id === c.id); if (a) a.dia = inp.value; }
     else contasData.venc[c.chave] = inp.value;
     saveContas(contasData); renderContas();
+  }));
+  el.querySelectorAll(".conta-nome-inp").forEach(inp=> inp.addEventListener("change", ()=>{
+    const c = achar(inp), a = registroMes(mes).avulsas.find(x=>x.id === c.id);
+    const nome = inp.value.trim();
+    if (!a || !nome) return;
+    a.nome = nome; saveContas(contasData); renderContas();
   }));
   el.querySelectorAll(".conta-pagodata").forEach(inp=> inp.addEventListener("change", ()=>{
     const c = achar(inp), p = registroMes(mes).pagos[c.chave];
