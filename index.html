@@ -194,6 +194,10 @@ nav.tabs.dragging #sidebar-handle{cursor:grabbing;}
   border-radius:14px; padding:0.4rem 0.5rem; cursor:pointer; font-size:0.95rem; flex:0 0 auto;
 }
 
+.subnav{display:flex; gap:0.4rem; flex-wrap:wrap; margin:0 0 1rem;}
+.subnav:empty{display:none;}
+.subnav button{font-family:inherit; font-size:0.85rem; padding:0.45rem 0.95rem; border-radius:999px; border:1px solid var(--gold); background:transparent; color:var(--wine); cursor:pointer;}
+.subnav button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream);}
 .view{display:none;}
 .view.active{display:block;}
 .stock-input{
@@ -302,19 +306,15 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
 <nav class="tabs" id="sidebar">
   <button id="sidebar-handle" title="Arraste para mover · toque para trocar de lado"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></button>
   <button id="sidebar-toggle" title="Expandir/recolher"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  <button data-view="painel" class="active"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="label">Painel</span></button>
-  <button data-view="receitas"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5v13"/></svg></span><span class="label">Receitas</span></button>
-  <button data-view="estoque"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.2v9.6L12 21l-8-4.2V7.2z"/><path d="M4 7.2l8 4.3 8-4.3"/><path d="M12 11.5V21"/></svg></span><span class="label">Estoque</span></button>
-  <button data-view="cookies"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="9.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="14.5" r=".9" fill="currentColor"/><circle cx="9.5" cy="14.5" r=".9" fill="currentColor"/></svg></span><span class="label">Cookies</span></button>
-  <button data-view="producao"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 14.5V19h10v-4.5"/><path d="M7.2 14.5A4 4 0 1 1 9 7a3.6 3.6 0 0 1 6 0 4 4 0 1 1 1.8 7.5z"/></svg></span><span class="label">Produção</span></button>
-  <button data-view="vendas"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></span><span class="label">Vendas</span></button>
-  <button data-view="caixa"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6.5" width="18" height="11" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v.01M17.5 14.5v.01"/></svg></span><span class="label">Caixa</span></button>
-  <button data-view="contas"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8.5h6M9 12h6"/></svg></span><span class="label">Contas</span></button>
-  <button data-view="custo"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17l5-5.5 4 3.5 7-8"/><path d="M15 7h4.5v4.5"/></svg></span><span class="label">Custo/cookie</span></button>
-  <button data-view="financeiro"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg></span><span class="label">Financeiro</span></button>
-  <button data-view="config"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2" fill="var(--cream)"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2" fill="var(--cream)"/></svg></span><span class="label">Config</span></button>
+  <button data-grupo="hoje" class="active"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="label">Hoje</span></button>
+  <button data-grupo="comprar"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="label">Comprar</span></button>
+  <button data-grupo="produzir"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="9.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="14.5" r=".9" fill="currentColor"/><circle cx="9.5" cy="14.5" r=".9" fill="currentColor"/></svg></span><span class="label">Produzir</span></button>
+  <button data-grupo="vender"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></span><span class="label">Vender</span></button>
+  <button data-grupo="dinheiro"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6.5" width="18" height="11" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v.01M17.5 14.5v.01"/></svg></span><span class="label">Dinheiro</span></button>
+  <button data-grupo="gestao"><span class="icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2" fill="var(--cream)"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2" fill="var(--cream)"/></svg></span><span class="label">Gestão</span></button>
 </nav>
 <main>
+  <div id="subnav" class="subnav"></div>
   <div id="view-painel" class="view active">
     <div id="painel"></div>
   </div>
@@ -323,6 +323,9 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
   </div>
   <div id="view-estoque" class="view">
     <div id="stock"></div>
+  </div>
+  <div id="view-comprar" class="view">
+    <div id="comprar"></div>
   </div>
   <div id="view-cookies" class="view">
     <div id="cookies"></div>
@@ -636,25 +639,16 @@ function renderStock(){
       <td>${ing.n}</td>
       <td class="price">
         <input class="stock-input" data-ing="${ing.n}" type="number" step="0.01" inputmode="decimal"
-          placeholder="0" value="${val}"> ${un}
+          placeholder="0" value="${val}" style="${parseFloat(val) < 0 ? 'color:var(--wine); border-color:var(--wine);' : ''}"> ${un}
       </td>
     </tr>`;
   }).join("");
 
   wrap.innerHTML = `
-    <div class="recipe" id="nota-card">
-      <h2>Ler nota ou foto da compra</h2>
-      <div class="sub">Tire foto da nota fiscal: o app lê os itens e você confere antes de aplicar</div>
-      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
-        <input id="nota-file" type="file" accept="image/*" style="font-family:inherit; color:var(--ink);">
-        <button id="nota-ler" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.5rem; cursor:pointer;">Ler foto</button>
-        <div id="nota-status" style="font-size:0.85rem;"></div>
-        <div id="nota-resultado"></div>
-      </div>
-    </div>
+    ${cartaoEstoqueEmFalta()}
     <div class="recipe">
       <h2>Estoque de ingredientes</h2>
-      <div class="sub">Digite quanto tem guardado de cada ingrediente agora</div>
+      <div class="sub">Use para corrigir a contagem. Para registrar uma compra, use a aba Comprar (ela refaz o custo e lança no Caixa).</div>
       <table>${tableHeadStock()}<tbody>${rows}</tbody></table>
     </div>
     <div class="recipe">
@@ -663,26 +657,12 @@ function renderStock(){
       <table class="tabela-compacta"><thead><tr><th>Item</th><th class="qty">Estoque</th><th class="qty">R$/un</th><th class="qty">1 por cookie</th><th></th></tr></thead><tbody>
         ${itensExtras.map((it,i)=>`<tr>
           <td>${esc(it.nome)}</td>
-          <td class="qty">${estoque[it.nome] ?? 0}</td>
+          <td class="qty" style="${parseFloat(estoque[it.nome]) < 0 ? 'color:var(--wine); font-weight:600;' : ''}">${estoque[it.nome] ?? 0}</td>
           <td class="qty">${it.precoUnitario ? "R$ "+parseFloat(it.precoUnitario).toFixed(2) : "—"}</td>
           <td class="qty"><input type="checkbox" class="extra-porcookie" data-i="${i}" ${it.porCookie?"checked":""}></td>
           <td class="price" style="text-align:right;"><button data-i="${i}" class="rm-extra" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;">x</button></td>
         </tr>`).join("")}
       </tbody></table>
-
-      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(176,141,87,0.3);">
-        <div class="sub" style="margin-bottom:0.5rem;">Registrar compra</div>
-        <div style="display:flex; flex-direction:column; gap:0.5rem;">
-          <select id="compra-extra-item" style="padding:0.4rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
-            ${itensExtras.map((it,i)=>`<option value="${i}">${esc(it.nome)}</option>`).join("")}
-          </select>
-          <div style="display:flex; gap:0.5rem;">
-            <input id="compra-extra-qtd" type="number" step="1" placeholder="quantidade comprada" style="flex:1; padding:0.4rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
-            <input id="compra-extra-valor" type="number" step="0.01" placeholder="valor pago (R$)" style="flex:1; padding:0.4rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
-          </div>
-          <button id="compra-extra-salvar" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.5rem; cursor:pointer;">Registrar compra</button>
-        </div>
-      </div>
 
       <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(176,141,87,0.3); display:flex; gap:0.5rem;">
         <input id="novo-extra" type="text" placeholder="novo item de embalagem" style="flex:1; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
@@ -700,6 +680,8 @@ function renderStock(){
       const nome = e.target.dataset.ing;
       const v = e.target.value;
       if (v === "") delete estoque[nome]; else estoque[nome] = v;
+      e.target.style.color = parseFloat(v) < 0 ? "var(--wine)" : "";
+      e.target.style.borderColor = parseFloat(v) < 0 ? "var(--wine)" : "";
       saveStock(estoque);
       renderRendimentos();
     });
@@ -732,23 +714,7 @@ function renderStock(){
     saveExtras(itensExtras);
     renderStock();
   });
-  const compraBtn = wrap.querySelector("#compra-extra-salvar");
-  if (compraBtn) compraBtn.addEventListener("click", ()=>{
-    const i = parseInt(document.getElementById("compra-extra-item").value);
-    const qtd = parseFloat(document.getElementById("compra-extra-qtd").value);
-    const valor = parseFloat(document.getElementById("compra-extra-valor").value);
-    if (isNaN(qtd) || qtd <= 0 || isNaN(valor) || valor <= 0) return;
-    const it = itensExtras[i];
-    const atual = parseFloat(estoque[it.nome]) || 0;
-    estoque[it.nome] = String(atual + qtd);
-    it.precoUnitario = (valor/qtd).toFixed(2);
-    saveStock(estoque);
-    saveExtras(itensExtras);
-    renderStock();
-  });
-
   renderRendimentos();
-  setupNota();
 }
 
 // ---- Leitura de nota fiscal por foto ----
@@ -834,7 +800,8 @@ function mostrarNota(itens, nomes, status, out){
         <input class="nota-preco" type="number" step="0.01" inputmode="decimal" value="${it.preco ?? ""}" placeholder="0,00" style="width:80px; padding:0.35rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
       </div>
     </div>`;
-  }).join("") + `<button id="nota-aplicar" style="margin-top:0.8rem; width:100%; border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.6rem; cursor:pointer;">Aplicar ao estoque e aos preços</button>`;
+  }).join("") + `<label style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem; margin-top:0.8rem;"><input type="checkbox" id="nota-caixa" checked> Lançar a saída no Caixa</label>
+    <button id="nota-aplicar" style="margin-top:0.6rem; width:100%; border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.6rem; cursor:pointer;">Aplicar ao estoque, ao custo médio e ao Caixa</button>`;
 
   out.querySelectorAll(".nota-sel").forEach(s=>{
     s.addEventListener("change", ()=>{
@@ -843,28 +810,23 @@ function mostrarNota(itens, nomes, status, out){
   });
 
   out.querySelector("#nota-aplicar").onclick = ()=>{
-    let aplicados = 0;
+    const itensCompra = [];
     out.querySelectorAll(".nota-item").forEach(div=>{
       const nome = div.querySelector(".nota-sel").value;
       const qtd = parseFloat(div.querySelector(".nota-qtd").value);
-      const preco = parseFloat(div.querySelector(".nota-preco").value);
+      const valor = parseFloat(div.querySelector(".nota-preco").value);
       if (!nome || isNaN(qtd) || qtd <= 0) return;
-      const atual = parseFloat(estoque[nome]) || 0;
-      estoque[nome] = String(Math.round((atual + qtd) * 100) / 100);
-      const ing = todosIngredientesUnicos().find(i=>i.n===nome);
-      const extra = itensExtras.find(it=>it.nome===nome);
-      if (ing && !isNaN(preco) && preco > 0){
-        precos[nome] = {tam: String(qtd), preco: String(preco)};
-      } else if (extra && !isNaN(preco) && preco > 0){
-        extra.precoUnitario = (preco/qtd).toFixed(2);
-      }
-      aplicados++;
+      itensCompra.push({ nome, qtd, valor: (!isNaN(valor) && valor > 0) ? valor : 0 });
     });
-    saveStock(estoque); savePrecos(precos); saveExtras(itensExtras);
-    render();
-    renderStock();
     const st = document.getElementById("nota-status");
-    if (st) st.textContent = aplicados ? `${aplicados} item(ns) somado(s) ao estoque e preços atualizados.` : "Nenhum item foi aplicado.";
+    if (!itensCompra.length){ if (st) st.textContent = "Nenhum item foi aplicado."; return; }
+    const lancar = !!out.querySelector("#nota-caixa").checked;
+    const compra = registrarCompra({ itens: itensCompra, dataISO: hojeISO(), lancarCaixa: lancar, origem: "nota" });
+    const semValor = compra.itens.filter(d=> !(d.valor > 0)).length;
+    render();
+    renderComprar(`Nota aplicada: ${compra.itens.length} item(ns) somado(s) ao estoque, total ${brl(compra.total)}.` +
+      (lancar && compra.total > 0 ? " Saída lançada no Caixa." : "") +
+      (semValor ? ` ${semValor} item(ns) sem valor: só entraram no estoque, o custo não mudou.` : ""));
   };
 }
 
@@ -878,7 +840,7 @@ function calcularCapacidadeTotalMassa(){
     const disp = parseFloat(estoque[ing.n]);
     if (!isNaN(disp)) algumCadastrado = true;
     const consumo = consumoPorCookie(ing, true);
-    const possiveis = isNaN(disp) ? 0 : Math.floor(disp/consumo);
+    const possiveis = isNaN(disp) ? 0 : Math.max(0, Math.floor(disp/consumo));
     if (possiveis < minCookies) minCookies = possiveis;
   });
   if (minCookies===Infinity) minCookies=0;
@@ -895,7 +857,7 @@ function calcularDaPraFazer(s){
     const disp = parseFloat(estoque[ing.n]);
     if (!isNaN(disp)) algumCadastrado = true;
     const consumo = consumoPorCookie(ing, deBase);
-    const possiveis = isNaN(disp) ? 0 : Math.floor(disp/consumo);
+    const possiveis = isNaN(disp) ? 0 : Math.max(0, Math.floor(disp/consumo));
     if (possiveis < minCookies){ minCookies = possiveis; gargalo = ing.n; }
   });
   if (minCookies===Infinity) minCookies=0;
@@ -1026,11 +988,11 @@ applyTheme(loadTheme());
 
 // ---- Atalhos customizáveis do Painel ----
 const ATALHOS_KEY = "casaruth_atalhos_extras";
-const DESTINOS_ATALHO = {painel:"Painel", receitas:"Receitas", estoque:"Estoque", producao:"Produção", vendas:"Vendas", caixa:"Caixa", contas:"Contas", financeiro:"Financeiro", config:"Config"};
+const DESTINOS_ATALHO = {painel:"Painel", receitas:"Receitas", estoque:"Estoque", comprar:"Comprar", producao:"Produção", vendas:"Vendas", caixa:"Caixa", contas:"Contas", financeiro:"Financeiro", config:"Config"};
 function loadAtalhos(){
   try{
     const raw = localStorage.getItem(ATALHOS_KEY);
-    if (raw === null) return [{nome:"Mandar foto de compra", destino:"estoque", foco:"nota"}];
+    if (raw === null) return [{nome:"Mandar foto de compra", destino:"comprar", foco:"nota"}];
     return JSON.parse(raw);
   }catch(e){ return []; }
 }
@@ -1543,13 +1505,29 @@ function ajustarIngredientes(saborId, total, sinal){
     const atual = parseFloat(estoque[ing.n]) || 0;
     if (sinal < 0){
       if (atual < consumo) faltou.push(ing.n);
-      estoque[ing.n] = Math.max(0, atual - consumo).toFixed(2);
+      estoque[ing.n] = (atual - consumo).toFixed(2);   // pode ficar negativo de propósito: mostra que falta registrar compra ou contagem
     } else {
       estoque[ing.n] = (atual + consumo).toFixed(2);
     }
   });
   saveStock(estoque);
   return faltou;
+}
+
+// Antes de moldar: lista o que vai faltar (tem X, precisa de Y)
+function faltaParaMoldar(saborId, total){
+  const lista = [];
+  const s = sabores.find(x=>x.id===saborId);
+  if (!s) return lista;
+  ingredientesDoSabor(s).forEach(({ing, deBase})=>{
+    const consumo = consumoPorCookie(ing, deBase) * total;
+    const atual = parseFloat(estoque[ing.n]) || 0;
+    if (atual < consumo){
+      const un = ing.unidade === "un" ? "un" : "g";
+      lista.push(`${ing.n}: tem ${fmtQtdCompra(un, atual)}, precisa de ${fmtQtdCompra(un, consumo)}`);
+    }
+  });
+  return lista;
 }
 
 function renderCookies(){
@@ -1606,6 +1584,8 @@ function renderCookies(){
     msgEl.style.color = "var(--wine)";
     if (qtd <= 0){ msgEl.textContent = "Digite quantos cookies você moldou."; return; }
 
+    const previaFalta = faltaParaMoldar(saborId, qtd);
+    if (previaFalta.length && !confirm("Não tem ingrediente suficiente para moldar:\n" + previaFalta.join("\n") + "\n\nRegistre a compra na aba Comprar antes, se já comprou. Registrar a moldagem mesmo assim? O estoque desses itens ficará negativo.")) return;
     const faltou = ajustarIngredientes(saborId, qtd, -1);
     somaSaldo("congelados", saborId, qtd);
     saveSaldoCookies(saldoCookies);
@@ -1615,7 +1595,7 @@ function renderCookies(){
     saveMoldados(historicoMoldados);
 
     const aviso = faltou.length
-      ? `Registrado — mas o estoque de ${faltou.join(", ")} ficou negativo (ajuste manual).`
+      ? `Registrado — mas o estoque de ${faltou.join(", ")} ficou negativo. Registre a compra em Comprar ou corrija a contagem em Estoque.`
       : "Moldagem registrada: ingredientes descontados e cookies no congelador.";
     renderCookies();
     const m2 = document.getElementById("mold-msg");
@@ -1772,7 +1752,12 @@ function mesAtual(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 }
-function hojeISO(){ return new Date().toISOString().slice(0,10); }
+// Data de hoje no horário do aparelho (antes usava UTC e, depois das 20h em Tangará da Serra, já dava "amanhã")
+function hojeISO(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+const ICONE_OK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function isoParaBR(iso){ const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`; }
 
 let modoVendaAtual = "avulso";
@@ -1792,8 +1777,7 @@ function renderVendas(){
         v.itens.forEach(it=>{ porSabor[it.saborId] = (porSabor[it.saborId]||0) + it.qtd*v.multiplicador; });
       } else {
         totalCookies += v.qtd;
-        const preco = parseFloat(precosVenda[v.sabor]) || 0;
-        totalReceita += preco * v.qtd;
+        totalReceita += valorDaVenda(v);
         porSabor[v.sabor] = (porSabor[v.sabor]||0) + v.qtd;
       }
     }
@@ -1854,7 +1838,7 @@ function renderVendas(){
         <div><span class="label">Receita</span><span class="value">R$ ${totalReceita.toFixed(2)}</span></div>
         <div><span class="label">Meta (ponto de equilíbrio)</span><span class="value">${pontoEquilibrio===null?"—":pontoEquilibrio+" cookies"}</span></div>
       </div>
-      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">${totalCookies >= pontoEquilibrio ? "Meta batida esse mês 🎉" : `Faltam ${pontoEquilibrio-totalCookies} cookies para bater a meta.`}</p>` : ""}
+      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">${totalCookies >= pontoEquilibrio ? `Meta batida esse mês ${ICONE_OK}` : `Faltam ${pontoEquilibrio-totalCookies} cookies para bater a meta.`}</p>` : ""}
     </div>
     <div class="recipe">
       <h2>Últimas vendas</h2>
@@ -1908,7 +1892,7 @@ function renderVendas(){
       qtdTotalCookies = qtd;
       entradaVenda = { id: Date.now()+Math.random(), data: isoParaBR(dataISO), dataISO, sabor, qtd };
       descricaoCaixa = `${qtd}x ${nomesSabor[sabor]||sabor}`;
-      valorCaixa = (parseFloat(precosVenda[sabor])||0) * qtd;
+      valorCaixa = (parseFloat(precosVenda[sabor])||0) * qtd;   // mesmo valor que será congelado na venda
     }
 
     const cookiesUsados = {};
@@ -1922,11 +1906,6 @@ function renderVendas(){
     const faltaAssado = Object.entries(cookiesUsados)
       .filter(([sid,q])=> saldoDe("assados", sid) < q)
       .map(([sid,q])=> `${NOME_SABOR[sid]||sid}: tem ${saldoDe("assados", sid)}, a venda precisa de ${q}`);
-    if (faltaAssado.length && !confirm("Não tem cookies assados suficientes:\n" + faltaAssado.join("\n") + "\n\nRegistre a fornada em Produção antes. Registrar a venda mesmo assim? O saldo de assados ficará negativo.")) return;
-    Object.entries(cookiesUsados).forEach(([sid,q])=> somaSaldo("assados", sid, -q));
-    saveSaldoCookies(saldoCookies);
-    entradaVenda.cookiesUsados = cookiesUsados;
-
     const embalagensUsadas = {};
     itensExtras.forEach(it=>{
       if (it.porCookie) embalagensUsadas[it.nome] = qtdTotalCookies;
@@ -1935,13 +1914,25 @@ function renderVendas(){
       const v = parseFloat(inp.value);
       if (!isNaN(v) && v > 0) embalagensUsadas[inp.dataset.nome] = v;
     });
+    const faltaEmb = Object.entries(embalagensUsadas)
+      .filter(([nome, usado])=> (parseFloat(estoque[nome]) || 0) < usado)
+      .map(([nome, usado])=> `${nome}: tem ${fmtNum(parseFloat(estoque[nome]) || 0)}, a venda usa ${fmtNum(usado)}`);
+    if ((faltaAssado.length || faltaEmb.length) && !confirm(
+      (faltaAssado.length ? "Não tem cookies assados suficientes:\n" + faltaAssado.join("\n") + "\n\nRegistre a fornada em Produção antes.\n\n" : "") +
+      (faltaEmb.length ? "Não tem embalagem suficiente:\n" + faltaEmb.join("\n") + "\n\nRegistre a compra na aba Comprar antes.\n\n" : "") +
+      "Registrar a venda mesmo assim? O saldo ficará negativo.")) return;
+    Object.entries(cookiesUsados).forEach(([sid,q])=> somaSaldo("assados", sid, -q));
+    saveSaldoCookies(saldoCookies);
+    entradaVenda.cookiesUsados = cookiesUsados;
+
     Object.entries(embalagensUsadas).forEach(([nome, usado])=>{
       const atual = parseFloat(estoque[nome]) || 0;
-      estoque[nome] = String(Math.max(0, atual - usado));
+      estoque[nome] = String(Math.round((atual - usado) * 100) / 100);   // pode ficar negativo de propósito
     });
     saveStock(estoque);
 
     entradaVenda.embalagensUsadas = embalagensUsadas;
+    congelarVenda(entradaVenda, false);   // guarda o valor e o custo desta venda como estão agora
     historicoVendas.push(entradaVenda);
     saveVendas(historicoVendas);
 
@@ -1950,7 +1941,8 @@ function renderVendas(){
         id: Date.now()+Math.random(),
         data: isoParaBR(dataISO), dataISO,
         tipo: "entrada", categoria: "venda", valor: valorCaixa,
-        descricao: descricaoCaixa
+        descricao: descricaoCaixa,
+        vendaId: entradaVenda.id
       });
       saveCaixa(historicoCaixa);
     }
@@ -1966,7 +1958,11 @@ function renderVendas(){
       const id = parseFloat(btn.dataset.id);
       const v = historicoVendas.find(x=>x.id===id);
       if (!v) return;
-      if (!confirm("Excluir essa venda? As embalagens e os cookies assados voltam para o estoque.")) return;
+      const ligadas = caixaDaVenda(id);
+      const msgVenda = "Excluir essa venda? As embalagens e os cookies assados voltam para o estoque." + (ligadas.length
+        ? ` O dinheiro dessa venda (R$ ${ligadas.reduce((t,l)=>t+(parseFloat(l.valor)||0),0).toFixed(2)}) também sai do Caixa.`
+        : " Se essa venda foi lançada no Caixa numa versão antiga do app, o dinheiro dela NÃO sai sozinho: apague a entrada na aba Caixa.");
+      if (!confirm(msgVenda)) return;
       if (v.embalagensUsadas){
         Object.entries(v.embalagensUsadas).forEach(([nome, usado])=>{
           const atual = parseFloat(estoque[nome]) || 0;
@@ -1980,6 +1976,10 @@ function renderVendas(){
       }
       historicoVendas = historicoVendas.filter(x=>x.id!==id);
       saveVendas(historicoVendas);
+      if (ligadas.length){
+        historicoCaixa = historicoCaixa.filter(x=>x.vendaId !== id);
+        saveCaixa(historicoCaixa);
+      }
       renderVendas();
     });
   });
@@ -1996,6 +1996,8 @@ function loadCaixa(){
 }
 function saveCaixa(list){ try{ localStorage.setItem(CAIXA_KEY, JSON.stringify(list)); }catch(e){} marcarAlterado(); }
 let historicoCaixa = loadCaixa();
+// entradas do Caixa que nasceram de uma venda (só as feitas a partir desta versão têm o vínculo)
+function caixaDaVenda(vendaId){ return historicoCaixa.filter(l=>l.vendaId === vendaId); }
 
 const CATEGORIAS_ENTRADA = {venda:"Venda de cookies", aporte:"Aporte/empréstimo dos sócios", outro:"Outra entrada"};
 const CATEGORIAS_SAIDA = {compra:"Compra de ingrediente/embalagem", conta:"Conta fixa (aluguel, salário...)", devolucao:"Devolução de aporte aos sócios", outro:"Outra saída"};
@@ -2129,8 +2131,8 @@ function renderCaixa(){
   el.querySelectorAll(".rm-caixa").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const id = parseFloat(btn.dataset.id);
-      if (!confirm("Excluir esse movimento?")) return;
       const removido = historicoCaixa.find(x=>x.id===id);
+      if (!confirm(removido && removido.compraId ? "Esse movimento veio de uma compra. Excluir aqui NÃO desfaz o estoque nem o custo (para isso use Desfazer na aba Comprar). Excluir mesmo assim?" : "Excluir esse movimento?")) return;
       if (removido && removido.contaChave){
         const reg = contasData.meses[removido.contaMes];
         if (reg && reg.pagos){ delete reg.pagos[removido.contaChave]; saveContas(contasData); }
@@ -2140,6 +2142,361 @@ function renderCaixa(){
       renderCaixa();
     });
   });
+}
+
+// ---- Lucro real: valor e custo ficam "congelados" na venda ----
+// <lucro-logica>
+// Custo do cookie só com massa + recheio (sem embalagem; a embalagem é contada à parte, pelo que foi usado na venda)
+function custoSemEmbalagemDoSabor(s){
+  const c = custoPorCookieDoSabor(s);
+  return c === null ? null : c - custoEmbalagemPorCookie();
+}
+function cookiesDaVenda(v){
+  const r = {};
+  if (v.tipo === "combo") (v.itens || []).forEach(it=>{ r[it.saborId] = (r[it.saborId] || 0) + it.qtd * (v.multiplicador || 1); });
+  else r[v.sabor] = v.qtd;
+  return r;
+}
+// Custo com os preços de AGORA. ing = null quando falta preço de algum ingrediente.
+function calcularCustoVenda(v){
+  let ing = 0;
+  Object.entries(cookiesDaVenda(v)).forEach(([sid, q])=>{
+    const s = sabores.find(x=>x.id === sid);
+    const c = s ? custoSemEmbalagemDoSabor(s) : null;
+    if (c === null || ing === null) ing = null; else ing += c * q;
+  });
+  let emb = 0, embIncompleta = false;
+  Object.entries(v.embalagensUsadas || {}).forEach(([nome, usado])=>{
+    const it = itensExtras.find(x=>x.nome === nome);
+    const p = it ? parseFloat(it.precoUnitario) : NaN;
+    if (isNaN(p)) { if (usado > 0) embIncompleta = true; } else emb += p * usado;
+  });
+  return { ing, emb, embIncompleta };
+}
+// Grava valor e custo dentro da venda. estimado=true: venda antiga (usa o preço de hoje). Devolve true se mudou algo.
+function congelarVenda(v, estimado){
+  let mudou = false;
+  if (typeof v.valor !== "number" && v.tipo !== "combo"){
+    const p = parseFloat(precosVenda[v.sabor]);
+    if (!isNaN(p) || !estimado){ v.valor = (p || 0) * v.qtd; if (estimado) v.estimado = true; mudou = true; }
+  }
+  if (typeof v.custoIng !== "number" || v.custoIncompleto){
+    const c = calcularCustoVenda(v);
+    if (c.ing !== null){
+      const igual = v.custoIng === c.ing && v.custoEmb === c.emb && !!v.custoIncompleto === c.embIncompleta;
+      if (!igual){ v.custoIng = c.ing; v.custoEmb = c.emb; v.custoIncompleto = c.embIncompleta; if (estimado) v.estimado = true; mudou = true; }
+    }
+  }
+  return mudou;
+}
+function congelarVendasAntigas(){
+  let mudou = false;
+  historicoVendas.forEach(v=>{ if (congelarVenda(v, true)) mudou = true; });
+  if (mudou) saveVendas(historicoVendas);
+  return mudou;
+}
+// Valor da venda: o congelado; se a venda ainda não foi congelada, cai no preço de hoje
+function valorDaVenda(v){
+  if (typeof v.valor === "number") return v.valor;
+  return (parseFloat(precosVenda[v.sabor]) || 0) * (v.qtd || 0);
+}
+// </lucro-logica>
+
+// ---- Compras: soma no estoque, refaz o custo médio e lança a saída no Caixa ----
+// <compras-logica>
+const COMPRAS_KEY = "casaruth_compras";
+function loadCompras(){ try{ const l = JSON.parse(localStorage.getItem(COMPRAS_KEY)||"[]"); return Array.isArray(l) ? l : []; }catch(e){ return []; } }
+function saveCompras(l){ try{ localStorage.setItem(COMPRAS_KEY, JSON.stringify(l)); }catch(e){} marcarAlterado(); }
+let historicoCompras = loadCompras();
+
+function arred(n, c){ const f = Math.pow(10, c); return Math.round(n*f)/f; }
+function fmtNum(n){ return (Math.round(n*100)/100).toLocaleString("pt-BR"); }
+function brl(n){ return "R$ " + n.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function brlUn(n){ return "R$ " + n.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:4}); }
+
+// Que tipo de item é: ingrediente em gramas, ingrediente em unidades (ovo) ou embalagem (unidades)
+function infoItemCompra(nome){
+  const extra = itensExtras.find(it=>it.nome===nome);
+  if (extra) return { tipo:"extra", un:"un", extra };
+  const ing = todosIngredientesUnicos().find(i=>i.n===nome);
+  if (ing) return { tipo:"ing", un: ing.unidade==="un" ? "un" : "g", ing };
+  return null;
+}
+// Custo atual por grama (ou por unidade). null = ainda não existe preço.
+function custoAtualUnit(nome){
+  const info = infoItemCompra(nome);
+  if (!info) return null;
+  if (info.tipo === "extra"){
+    const p = parseFloat(info.extra.precoUnitario);
+    return (isNaN(p) || p <= 0) ? null : p;
+  }
+  const d = precos[nome];
+  if (!d) return null;
+  const tam = parseFloat(info.un === "g" ? (d.tam ?? info.ing.tamTipico) : d.tam);
+  const pr = parseFloat(d.preco);
+  if (isNaN(tam) || isNaN(pr) || tam <= 0 || pr <= 0) return null;
+  return pr / tam;
+}
+// Só calcula (não grava nada). qtd em gramas ou unidades. valor 0 = só estoque, custo não muda.
+function calcularCompraItem(nome, qtd, valor){
+  const estAntes = parseFloat(estoque[nome]) || 0;        // estoque de verdade (pode estar negativo)
+  const sobra = Math.max(0, estAntes);                    // só o que existe de fato entra na média do custo
+  const custoAntes = custoAtualUnit(nome);
+  const estDepois = arred(estAntes + qtd, 2);
+  const baseDepois = arred(sobra + qtd, 2);
+  let custoDepois = custoAntes, valorTotalDepois = null;
+  if (valor > 0){
+    const valorSobra = custoAntes === null ? 0 : sobra * custoAntes;   // quanto vale o que sobrou
+    valorTotalDepois = valorSobra + valor;                              // + o que acabei de pagar
+    custoDepois = valorTotalDepois / baseDepois;                        // ÷ quantidade total
+  }
+  return { estAntes, estDepois, baseDepois, custoAntes, custoDepois, valorTotalDepois };
+}
+// Grava no estoque e no preço. Devolve o "antes" para poder desfazer.
+function aplicarCompraItem(nome, qtd, valor){
+  const info = infoItemCompra(nome);
+  const r = calcularCompraItem(nome, qtd, valor);
+  const antes = {
+    estoque: estoque[nome] === undefined ? null : estoque[nome],
+    precos: precos[nome] ? JSON.parse(JSON.stringify(precos[nome])) : null,
+    precoUnitario: info.tipo === "extra" ? info.extra.precoUnitario : null
+  };
+  estoque[nome] = String(r.estDepois);
+  if (valor > 0){
+    if (info.tipo === "extra") info.extra.precoUnitario = r.custoDepois.toFixed(4);
+    else precos[nome] = { tam: String(r.baseDepois), preco: String(arred(r.valorTotalDepois, 2)) };
+  }
+  return antes;
+}
+// Itens negativos (descontou mais do que tinha) e zerados
+function itensEmFalta(){
+  const itens = todosIngredientesUnicos().map(i=>({nome:i.n, un: i.unidade === "un" ? "un" : "g"}))
+    .concat(itensExtras.map(it=>({nome:it.nome, un:"un"})));
+  const lista = [];
+  itens.forEach(x=>{
+    if (estoque[x.nome] === undefined || estoque[x.nome] === "") return;   // nunca cadastrado: não é falta
+    const q = parseFloat(estoque[x.nome]);
+    if (isNaN(q)) return;
+    if (q < 0) lista.push({ ...x, qtd:q, tipo:"negativo" });
+    else if (q === 0) lista.push({ ...x, qtd:q, tipo:"zerado" });
+  });
+  return lista;
+}
+function cartaoEstoqueEmFalta(){
+  const f = itensEmFalta();
+  if (!f.length) return "";
+  const neg = f.filter(x=>x.tipo === "negativo"), zer = f.filter(x=>x.tipo === "zerado");
+  return `<div class="recipe" style="border-color:var(--wine);">
+    <h2>Atenção no estoque</h2>
+    ${neg.length ? `<p style="font-size:0.9rem; color:var(--wine);"><b>Negativo:</b> ${neg.map(x=>`${esc(x.nome)} (${fmtQtdCompra(x.un, x.qtd)})`).join(", ")}.</p>
+    <p style="font-size:0.82rem; opacity:0.8; margin-top:0.3rem;">Negativo quer dizer que o app descontou mais do que você disse que tinha. Ou faltou registrar uma compra, ou a contagem está desatualizada. Registre a compra em Comprar ou digite a contagem real abaixo.</p>` : ""}
+    ${zer.length ? `<p style="font-size:0.9rem; margin-top:0.4rem;"><b>Zerado:</b> ${zer.map(x=>esc(x.nome)).join(", ")}.</p>` : ""}
+  </div>`;
+}
+function fmtQtdCompra(un, qtd){
+  if (un === "g") return Math.abs(qtd) >= 1000 ? `${fmtNum(qtd/1000)} kg` : `${fmtNum(qtd)} g`;
+  return `${fmtNum(qtd)} un`;
+}
+function descricaoCompra(c){
+  if (c.itens.length === 1) return `Compra: ${c.itens[0].nome} (${fmtQtdCompra(c.itens[0].un, c.itens[0].qtd)})`;
+  return `Compra (${c.itens.length} itens): ` + c.itens.slice(0,3).map(i=>i.nome).join(", ") + (c.itens.length > 3 ? "..." : "");
+}
+// itens: [{nome, qtd, valor}] — qtd em gramas ou unidades.
+function registrarCompra({itens, dataISO, lancarCaixa, origem}){
+  const lista = itens.filter(it=> infoItemCompra(it.nome) && it.qtd > 0);
+  if (!lista.length) return null;
+  const id = Date.now() + Math.random();
+  const data = dataISO || hojeISO();
+  const dados = lista.map(it=>{
+    const valor = it.valor > 0 ? it.valor : 0;
+    const antes = aplicarCompraItem(it.nome, it.qtd, valor);
+    return { nome: it.nome, qtd: it.qtd, valor, un: infoItemCompra(it.nome).un, antes };
+  });
+  const total = arred(dados.reduce((s,d)=> s + d.valor, 0), 2);
+  const compra = { id, dataISO: data, data: isoParaBR(data), itens: dados, total, origem: origem || "manual" };
+  if (lancarCaixa && total > 0){
+    const cid = Date.now() + Math.random();
+    historicoCaixa.push({ id: cid, data: isoParaBR(data), dataISO: data, tipo:"saida", categoria:"compra", valor: total, descricao: descricaoCompra(compra), compraId: id });
+    compra.caixaId = cid;
+    saveCaixa(historicoCaixa);
+  }
+  historicoCompras.push(compra);
+  saveCompras(historicoCompras);
+  saveStock(estoque); savePrecos(precos); saveExtras(itensExtras);
+  return compra;
+}
+// Desfaz: tira do estoque, volta o custo (se não houve compra depois) e apaga a saída do Caixa.
+function desfazerCompra(id){
+  const idx = historicoCompras.findIndex(c=> c.id === id);
+  if (idx < 0) return { ok:false, avisos:[] };
+  const c = historicoCompras[idx];
+  const avisos = [];
+  c.itens.forEach(d=>{
+    const info = infoItemCompra(d.nome);
+    if (!info) return;   // item foi removido do app: nada a desfazer
+    const atual = parseFloat(estoque[d.nome]) || 0;
+    estoque[d.nome] = String(arred(atual - d.qtd, 2));
+    if (!(d.valor > 0)) return;
+    const houveDepois = historicoCompras.slice(idx+1).some(x=> x.itens.some(y=> y.nome === d.nome && y.valor > 0));
+    if (houveDepois){ avisos.push(d.nome); return; }
+    if (info.tipo === "extra") info.extra.precoUnitario = d.antes.precoUnitario ?? "";
+    else if (d.antes.precos) precos[d.nome] = d.antes.precos;
+    else delete precos[d.nome];
+  });
+  if (c.caixaId){
+    historicoCaixa = historicoCaixa.filter(x=> x.id !== c.caixaId);
+    saveCaixa(historicoCaixa);
+  }
+  historicoCompras.splice(idx, 1);
+  saveCompras(historicoCompras);
+  saveStock(estoque); savePrecos(precos); saveExtras(itensExtras);
+  return { ok:true, avisos };
+}
+// </compras-logica>
+
+// ---- Tela Comprar ----
+const CP_INPUT = "padding:0.5rem; border-radius:12px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit; width:100%; box-sizing:border-box;";
+function opcoesUnidadeCompra(nome){
+  const info = infoItemCompra(nome);
+  if (!info) return [];
+  if (info.un === "g") return [{v:"kg", t:"kg", f:1000}, {v:"g", t:"g", f:1}];
+  if (info.tipo === "ing") return [{v:"un", t:"un", f:1}, {v:"duzia", t:"dúzia", f:12}];
+  return [{v:"un", t:"un", f:1}];
+}
+
+function renderComprar(aviso){
+  const el = document.getElementById("comprar");
+  if (!el) return;
+  const ings = todosIngredientesUnicos();
+  const ultimas = historicoCompras.slice().reverse().slice(0, 12);
+
+  el.innerHTML = `
+    ${aviso ? `<div class="recipe" style="border-color:#3F7D4F;"><div style="font-size:0.92rem; line-height:1.4;">${aviso}</div></div>` : ""}
+    <div class="recipe">
+      <h2>Registrar compra</h2>
+      <div class="sub">O app soma no estoque, refaz o custo médio e lança a saída no Caixa.</div>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.7rem;">
+        <select id="cp-item" style="${CP_INPUT}">
+          <optgroup label="Ingredientes">${ings.map(i=>`<option value="${esc(i.n)}">${esc(i.n)}</option>`).join("")}</optgroup>
+          ${itensExtras.length ? `<optgroup label="Embalagens">${itensExtras.map(it=>`<option value="${esc(it.nome)}">${esc(it.nome)}</option>`).join("")}</optgroup>` : ""}
+        </select>
+        <div style="display:flex; gap:0.5rem;">
+          <input id="cp-qtd" type="number" step="0.01" inputmode="decimal" placeholder="Quantidade comprada" style="${CP_INPUT} flex:1;">
+          <select id="cp-un" style="${CP_INPUT} width:96px;"></select>
+        </div>
+        <input id="cp-valor" type="number" step="0.01" inputmode="decimal" placeholder="Valor pago no total (R$)" style="${CP_INPUT}">
+        <input id="cp-data" type="date" value="${hojeISO()}" style="${CP_INPUT}">
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><input type="checkbox" id="cp-caixa" checked> Lançar a saída no Caixa</label>
+        <div id="cp-previa" style="font-size:0.88rem; line-height:1.5; border-left:3px solid var(--gold); padding:0.2rem 0.7rem;"></div>
+        <div id="cp-erro" style="font-size:0.85rem; color:var(--wine);"></div>
+        <button class="btn-pri" id="cp-salvar" type="button">Registrar compra</button>
+      </div>
+    </div>
+
+    <div class="recipe" id="nota-card">
+      <h2>Ler nota ou foto da compra</h2>
+      <div class="sub">Tire foto da nota fiscal: o app lê os itens e você confere antes de aplicar</div>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
+        <input id="nota-file" type="file" accept="image/*" style="font-family:inherit; color:var(--ink);">
+        <button class="btn-pri" id="nota-ler" type="button">Ler foto</button>
+        <div id="nota-status" style="font-size:0.85rem;"></div>
+        <div id="nota-resultado"></div>
+      </div>
+    </div>
+
+    <div class="recipe">
+      <h2>Últimas compras</h2>
+      ${ultimas.length ? `<div class="contas-grid" style="margin-top:0.6rem;">${ultimas.map(c=>`
+        <div class="conta-card">
+          <div class="conta-topo"><span class="conta-nome">${esc(c.data)}</span><span class="selo selo-pend">${c.total > 0 ? brl(c.total) : "sem valor"}</span></div>
+          <div style="font-size:0.85rem; line-height:1.4;">${c.itens.map(d=>`${esc(d.nome)} · ${fmtQtdCompra(d.un, d.qtd)}${d.valor > 0 ? " · " + brl(d.valor) : ""}`).join("<br>")}</div>
+          <div style="font-size:0.75rem; opacity:0.7;">${c.caixaId ? "Saída lançada no Caixa" : "Não foi para o Caixa"}</div>
+          <div class="conta-acoes"><button class="btn-sec cp-desfazer" data-id="${c.id}" type="button">Desfazer</button></div>
+        </div>`).join("")}</div>` : `<div style="opacity:0.6; margin-top:0.5rem;">Nenhuma compra registrada ainda.</div>`}
+    </div>
+  `;
+
+  const sel = el.querySelector("#cp-item"), selUn = el.querySelector("#cp-un");
+  const qtdEl = el.querySelector("#cp-qtd"), valEl = el.querySelector("#cp-valor");
+  const previa = el.querySelector("#cp-previa"), erro = el.querySelector("#cp-erro");
+
+  function lerForm(){
+    const nome = sel.value;
+    const op = opcoesUnidadeCompra(nome).find(o=>o.v === selUn.value);
+    const qtdDigitada = parseFloat(qtdEl.value);
+    const valor = parseFloat(valEl.value);
+    const qtdBase = (op && qtdDigitada > 0) ? qtdDigitada * op.f : NaN;
+    return { nome, op, qtdBase, valor: (valor > 0 ? valor : 0) };
+  }
+  function trocouItem(){
+    selUn.innerHTML = opcoesUnidadeCompra(sel.value).map(o=>`<option value="${o.v}">${o.t}</option>`).join("");
+    atualizarPrevia();
+  }
+  function atualizarPrevia(){
+    erro.textContent = "";
+    const f = lerForm();
+    const info = infoItemCompra(f.nome);
+    if (!info || !(f.qtdBase > 0)){
+      previa.innerHTML = `<span style="opacity:0.7;">Preencha a quantidade e o valor pago para ver o novo custo.</span>`;
+      return;
+    }
+    const r = calcularCompraItem(f.nome, f.qtdBase, f.valor);
+    const porKg = info.un === "g";
+    const fatorC = porKg ? 1000 : 1, unC = porKg ? "kg" : "un";
+    const fmtC = n => porKg ? brl(n * fatorC) : brlUn(n);
+    let h = `Você está comprando <b>${fmtQtdCompra(info.un, f.qtdBase)}</b>. Estoque: ${fmtQtdCompra(info.un, r.estAntes)} → <b>${fmtQtdCompra(info.un, r.estDepois)}</b>.`;
+    if (r.estAntes < 0) h += `<br><span style="color:var(--wine);">O estoque estava negativo: parte desta compra cobre o que já foi usado.</span>`;
+    if (f.valor > 0){
+      h += `<br>Preço desta compra: ${fmtC(f.valor / f.qtdBase)}/${unC}.`;
+      h += `<br>Custo médio: ${r.custoAntes === null ? "sem preço antes" : fmtC(r.custoAntes) + "/" + unC} → <b>${fmtC(r.custoDepois)}/${unC}</b>.`;
+      if (r.custoAntes !== null){
+        const razao = (f.valor / f.qtdBase) / r.custoAntes;
+        if (razao > 2 || razao < 0.5) h += `<br><span style="color:var(--wine);">Atenção: o preço está muito diferente do custo atual. Confira a quantidade e o valor.</span>`;
+      }
+    } else {
+      h += `<br><span style="opacity:0.75;">Sem valor pago: soma só no estoque, o custo não muda.</span>`;
+    }
+    previa.innerHTML = h;
+  }
+  sel.addEventListener("change", trocouItem);
+  [selUn, qtdEl, valEl].forEach(x=> x.addEventListener("input", atualizarPrevia));
+  selUn.addEventListener("change", atualizarPrevia);
+  trocouItem();
+
+  el.querySelector("#cp-salvar").addEventListener("click", ()=>{
+    const f = lerForm();
+    const info = infoItemCompra(f.nome);
+    if (!info){ erro.textContent = "Escolha o item."; return; }
+    if (!(f.qtdBase > 0)){ erro.textContent = "Digite a quantidade comprada."; return; }
+    if (!(f.valor > 0)){ erro.textContent = "Digite o valor pago. Sem ele o app não consegue refazer o custo."; return; }
+    if (info.un === "g" && f.qtdBase > 50000 && !confirm(`Você digitou ${fmtQtdCompra("g", f.qtdBase)}. Está certo?`)) return;
+    const r = calcularCompraItem(f.nome, f.qtdBase, f.valor);
+    if (r.custoAntes !== null){
+      const razao = (f.valor / f.qtdBase) / r.custoAntes;
+      if ((razao > 2 || razao < 0.5) && !confirm("O preço desta compra está muito diferente do custo atual. Registrar mesmo assim?")) return;
+    }
+    const dataISO = el.querySelector("#cp-data").value || hojeISO();
+    registrarCompra({ itens:[{nome:f.nome, qtd:f.qtdBase, valor:f.valor}], dataISO, lancarCaixa: el.querySelector("#cp-caixa").checked, origem:"manual" });
+    const porKg = info.un === "g";
+    const custoTxt = porKg ? `${brl(r.custoDepois * 1000)}/kg` : `${brlUn(r.custoDepois)}/un`;
+    const caixaTxt = el.querySelector("#cp-caixa").checked ? ` Saída de ${brl(f.valor)} lançada no Caixa.` : "";
+    render();   // refaz a aba Receitas com o custo novo
+    renderComprar(`Compra registrada: ${esc(f.nome)}, ${fmtQtdCompra(info.un, f.qtdBase)}. Estoque agora ${fmtQtdCompra(info.un, r.estDepois)}; custo médio ${custoTxt}.${caixaTxt}`);
+  });
+
+  el.querySelectorAll(".cp-desfazer").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const c = historicoCompras.find(x=> String(x.id) === btn.dataset.id);
+      if (!c) return;
+      if (!confirm("Desfazer esta compra? Vai tirar do estoque, voltar o custo e apagar a saída do Caixa.")) return;
+      const r = desfazerCompra(c.id);
+      render();
+      const av = r.avisos.length ? ` O custo médio de ${r.avisos.map(esc).join(", ")} não foi refeito porque houve outra compra depois; só o estoque foi ajustado.` : "";
+      renderComprar(`Compra desfeita.${av}`);
+    });
+  });
+
+  setupNota();
 }
 
 // ---- Backup: exportar / restaurar tudo ----
@@ -2393,7 +2750,7 @@ function renderContas(){
   if (ehAtual){
     if (lista.length === 0) aviso = "Nenhuma conta ainda. Os custos fixos de Config aparecem aqui sozinhos; contas avulsas você adiciona lá embaixo.";
     else if (rc.livre < 0){ aviso = `Atenção: o caixa não cobre as contas pendentes. Faltam R$ ${(-rc.livre).toFixed(2)}.`; avisoCor = "color:var(--wine); font-weight:600;"; }
-    else if (rc.pend + rc.pendAnt === 0) aviso = "Todas as contas do mês estão pagas 🎉";
+    else if (rc.pend + rc.pendAnt === 0) aviso = "Todas as contas do mês estão pagas.";
     else aviso = `Já separando as contas pendentes, sobram R$ ${rc.livre.toFixed(2)} livres para compras.`;
   }
 
@@ -2544,16 +2901,18 @@ function renderPainel(){
   const mAtual = mesAtual();
 
   // Vendas e receita do mês
-  let vendidosMes = 0, receitaMes = 0;
+  let vendidosMes = 0, receitaMes = 0, custoIngVendidosMes = 0, custoEmbMes = 0, vendasSemCusto = 0, vendasEstimadas = 0;
   historicoVendas.forEach(v=>{
     if (v.dataISO && v.dataISO.slice(0,7)===mAtual){
       if (v.tipo === "combo"){
         vendidosMes += v.itens.reduce((s,it)=>s+it.qtd,0) * v.multiplicador;
-        receitaMes += v.valor;
       } else {
         vendidosMes += v.qtd;
-        receitaMes += (parseFloat(precosVenda[v.sabor])||0) * v.qtd;
       }
+      receitaMes += valorDaVenda(v);
+      if (typeof v.custoIng === "number"){ custoIngVendidosMes += v.custoIng; custoEmbMes += (v.custoEmb || 0); }
+      else vendasSemCusto++;
+      if (v.estimado) vendasEstimadas++;
     }
   });
 
@@ -2565,7 +2924,7 @@ function renderPainel(){
       bonsMes += f.bons; perdidosMes += f.perdidos;
       if (f.perdidos > 0){
         const s = sabores.find(x=>x.id===f.sabor);
-        const custo = s ? custoPorCookieDoSabor(s) : null;
+        const custo = s ? custoSemEmbalagemDoSabor(s) : null;   // queimado não gastou embalagem
         if (custo !== null) custoDesperdicioMes += custo * f.perdidos;
       }
     }
@@ -2582,7 +2941,7 @@ function renderPainel(){
   }).filter(m=>m!==null);
   const margemMedia = margens.length ? margens.reduce((a,b)=>a+b,0)/margens.length : null;
   const pontoEquilibrio = margemMedia && margemMedia>0 ? Math.ceil(totalFixo/margemMedia) : null;
-  const lucroEstimadoMes = receitaMes - totalFixo; // simplificado: receita do mês menos os fixos
+  const lucroRealMes = receitaMes - custoIngVendidosMes - custoEmbMes - custoDesperdicioMes - totalFixo;   // receita - custo do que vendeu - queimados - contas fixas
 
   // Estoque: por sabor, quanto dá pra fazer + gargalo
   const dadosSabor = sabores.map(s=>{
@@ -2608,6 +2967,8 @@ function renderPainel(){
   } else {
     dadosSabor.forEach(d=>{ if (!d.estoqueVazio && !d.receitaIncompleta && d.minCookies === 0) acoes.push(`Comprar ${d.gargalo} — ${d.nome} está zerado`); });
   }
+  const emFaltaNeg = itensEmFalta().filter(x=>x.tipo === "negativo");
+  if (emFaltaNeg.length) acoes.push(`Estoque negativo: ${emFaltaNeg.map(x=>`${esc(x.nome)} (${fmtQtdCompra(x.un, x.qtd)})`).join(", ")} — registre a compra em Comprar ou corrija a contagem em Estoque`);
   if (pontoEquilibrio!==null && vendidosMes < pontoEquilibrio) acoes.push(`Faltam ${pontoEquilibrio-vendidosMes} cookies vendidos para bater a meta do mês`);
   if (pctPerda!==null && pctPerda > 10) acoes.push(`Perda do mês em ${pctPerda.toFixed(0)}% (R$ ${custoDesperdicioMes.toFixed(2)} em ingrediente perdido) — vale olhar o forno ou a receita`);
   if (sabores.some(s=>isNaN(parseFloat(precosVenda[s.id])))) acoes.push(`Tem sabor sem preço de venda definido — confira em Config`);
@@ -2642,11 +3003,16 @@ function renderPainel(){
       <div class="summary">
         <div><span class="label">Vendidos</span><span class="value">${vendidosMes} cookies</span></div>
         <div><span class="label">Receita</span><span class="value">R$ ${receitaMes.toFixed(2)}</span></div>
-        <div><span class="label">Custos fixos</span><span class="value">R$ ${totalFixo.toFixed(2)}</span></div>
-        <div><span class="label">Desperdício</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">R$ ${custoDesperdicioMes.toFixed(2)}</span></div>
-        <div><span class="label">Resultado até agora</span><span class="value">R$ ${lucroEstimadoMes.toFixed(2)}</span></div>
+        <div><span class="label">Ingredientes dos vendidos</span><span class="value">R$ ${custoIngVendidosMes.toFixed(2)}</span></div>
+        <div><span class="label">Embalagens</span><span class="value">R$ ${custoEmbMes.toFixed(2)}</span></div>
+        <div><span class="label">Queimados</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">R$ ${custoDesperdicioMes.toFixed(2)}</span></div>
+        <div><span class="label">Contas fixas do mês</span><span class="value">R$ ${totalFixo.toFixed(2)}</span></div>
+        <div><span class="label">Lucro real até agora</span><span class="value" style="${lucroRealMes<0?'color:var(--wine);':'color:#3F7D4F;'}">R$ ${lucroRealMes.toFixed(2)}</span></div>
       </div>
-      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">Meta do mês: ${pontoEquilibrio} cookies. ${vendidosMes >= pontoEquilibrio ? "Já batida 🎉" : `Faltam ${pontoEquilibrio-vendidosMes}.`}</p>` : `<p style="font-size:0.85rem; opacity:0.6; margin-top:0.6rem;">Preencha preços em Receitas e Config para calcular a meta.</p>`}
+      <p style="font-size:0.8rem; opacity:0.7; margin-top:0.5rem;">Lucro real = receita menos o custo do que foi vendido (ingredientes e embalagens), menos os cookies queimados, menos as contas fixas do mês inteiro.</p>
+      ${vendasSemCusto ? `<p style="font-size:0.82rem; color:var(--wine); margin-top:0.4rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente em Receitas ou em Comprar). O lucro pode estar maior do que o real.</p>` : ""}
+      ${vendasEstimadas ? `<p style="font-size:0.8rem; opacity:0.7; margin-top:0.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
+      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">Meta do mês: ${pontoEquilibrio} cookies. ${vendidosMes >= pontoEquilibrio ? `Já batida ${ICONE_OK}` : `Faltam ${pontoEquilibrio-vendidosMes}.`}</p>` : `<p style="font-size:0.85rem; opacity:0.6; margin-top:0.6rem;">Preencha preços em Receitas e Config para calcular a meta.</p>`}
     </div>
     <div class="recipe">
       <h2>Custo do cookie</h2>
@@ -2675,7 +3041,7 @@ function renderPainel(){
   el.querySelectorAll(".atalho-extra").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const a = atalhosExtras[parseInt(btn.dataset.i)];
-      irPara(a.destino);
+      irPara((a.foco === "nota" && a.destino === "estoque") ? "comprar" : a.destino);   // a leitura de nota agora fica na aba Comprar
       if (a.foco === "nota"){
         setTimeout(()=>{
           const card = document.getElementById("nota-card");
@@ -2696,7 +3062,7 @@ function estadoCompleto(){
     atalhosExtras, itensExtras, historicoProducao, historicoVendas, historicoCaixa,
     tema: loadTheme(), rendimentoFornada: RENDIMENTO_FORNADA, combos,
     metaProducaoMensal, baseHistorica, sidebarPrefs, contasData,
-    historicoMoldados, saldoCookies
+    historicoMoldados, saldoCookies, historicoCompras
   };
 }
 
@@ -2738,6 +3104,7 @@ async function carregarDoBanco(){
       if (d.historicoVendas) historicoVendas = d.historicoVendas;
       if (d.historicoCaixa) historicoCaixa = d.historicoCaixa;
       if (d.historicoMoldados) historicoMoldados = d.historicoMoldados;
+      if (d.historicoCompras) { historicoCompras = d.historicoCompras; saveCompras(historicoCompras); }
       if (d.saldoCookies) saldoCookies = normalizarSaldoCookies(d.saldoCookies);
       if (d.tema) applyTheme(d.tema);
       if (d.rendimentoFornada > 0){ RENDIMENTO_FORNADA = d.rendimentoFornada; saveRendimento(RENDIMENTO_FORNADA); }
@@ -2751,6 +3118,7 @@ async function carregarDoBanco(){
         saveSidebarPrefs(sidebarPrefs);
         aplicarSidebar();
       }
+      congelarVendasAntigas();
       // guarda uma cópia local também, e atualiza a tela com o que veio do banco
       saveStock(estoque); saveRecheioGramas(recheioGramas); savePrecosVenda(precosVenda);
       saveFixos(custosFixos); saveFixosExtras(custosFixosExtras); saveAtalhos(atalhosExtras);
@@ -2758,7 +3126,7 @@ async function carregarDoBanco(){
       saveCaixa(historicoCaixa); savePrecos(precos);
       saveMoldados(historicoMoldados); saveSaldoCookies(saldoCookies);
       nuvemPronta = true; ultimoSyncOk = true; mostrarStatus("ok");
-      const abaAtiva = document.querySelector("nav.tabs button.active")?.dataset.view || "painel";
+      const abaAtiva = abaAtual || "painel";
       irPara(abaAtiva);
     } else {
       await dbRef.doc("estado/casaruth").set(estadoCompleto());
@@ -2771,12 +3139,41 @@ async function carregarDoBanco(){
 }
 
 // ---- Navegação ----
+// Grupos do menu (passo 4): cada grupo tem uma ou mais telas
+const GRUPOS = {
+  hoje:     [["painel","Painel"]],
+  comprar:  [["comprar","Comprar"],["estoque","Estoque"]],
+  produzir: [["cookies","Moldar cookies"],["producao","Assar"]],
+  vender:   [["vendas","Vendas"]],
+  dinheiro: [["caixa","Caixa"],["contas","Contas"]],
+  gestao:   [["receitas","Receitas"],["custo","Custo/cookie"],["financeiro","Financeiro"],["config","Config"]]
+};
+let abaAtual = "painel";
+const ultimaTelaDoGrupo = {};
+function grupoDaTela(view){
+  for (const g in GRUPOS){ if (GRUPOS[g].some(t=>t[0]===view)) return g; }
+  return "hoje";
+}
 function irPara(view){
-  document.querySelectorAll("nav.tabs button[data-view]").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  if (!document.getElementById(`view-${view}`)) view = "painel";
+  abaAtual = view;
+  const grupo = grupoDaTela(view);
+  ultimaTelaDoGrupo[grupo] = view;
+  document.querySelectorAll("nav.tabs button[data-grupo]").forEach(b=>b.classList.toggle("active", b.dataset.grupo===grupo));
+  // barra de sub-abas: só aparece quando o grupo tem mais de uma tela
+  const sub = document.getElementById("subnav");
+  if (sub){
+    const telas = GRUPOS[grupo];
+    sub.innerHTML = telas.length > 1
+      ? telas.map(t=>`<button data-tela="${t[0]}" class="${t[0]===view?"active":""}">${t[1]}</button>`).join("")
+      : "";
+    sub.querySelectorAll("button[data-tela]").forEach(b=>b.addEventListener("click", ()=> irPara(b.dataset.tela)));
+  }
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById(`view-${view}`).classList.add("active");
   if (view === "painel") renderPainel();
   if (view === "estoque") renderStock();
+  if (view === "comprar") renderComprar();
   if (view === "cookies") renderCookies();
   if (view === "producao") renderProducao();
   if (view === "vendas") renderVendas();
@@ -2786,8 +3183,8 @@ function irPara(view){
   if (view === "financeiro") renderFinanceiro();
   if (view === "config") renderConfig();
 }
-document.querySelectorAll("nav.tabs button[data-view]").forEach(btn=>{
-  btn.addEventListener("click", ()=> irPara(btn.dataset.view));
+document.querySelectorAll("nav.tabs button[data-grupo]").forEach(btn=>{
+  btn.addEventListener("click", ()=> irPara(ultimaTelaDoGrupo[btn.dataset.grupo] || GRUPOS[btn.dataset.grupo][0][0]));
 });
 
 // ---- Dock flutuante: posição (bottom/left/right), recolhido/expandido, arrastável ----
@@ -3145,6 +3542,7 @@ async function iniciarDb(){
   if (data.session) await entrou(data.session.user);
 }
 
+congelarVendasAntigas();
 render();
 renderPainel();
 initSidebar();
