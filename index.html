@@ -106,6 +106,19 @@ table tr[data-cols="2"] td:first-child{flex:1 1 auto;}
 table tr.vazio{grid-column:1/-1; background:transparent; border-style:dashed; box-shadow:none; opacity:0.75;}
 table tr.vazio td{font-family:inherit; font-weight:400; color:var(--ink); font-size:0.9rem;}
 th.qty, th.price{text-align:right;}
+
+/* Tabela de verdade: para comparar os mesmos números em várias linhas (preço, margem, saldo).
+   Registros e listas com botão continuam virando cartões. */
+table.tabela-real{display:table; border-collapse:collapse;}
+table.tabela-real thead{display:table-header-group;}
+table.tabela-real tbody{display:table-row-group;}
+table.tabela-real tr{display:table-row; padding:0; border:none; border-radius:0; background:none; box-shadow:none;}
+table.tabela-real th{padding:0.3rem 0.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); text-align:left; border-bottom:1px solid rgba(176,141,87,.5);}
+table.tabela-real th.qty, table.tabela-real th.price{text-align:right;}
+table.tabela-real td{display:table-cell; padding:0.5rem 0.4rem; text-align:right; vertical-align:middle; font-size:0.88rem; border-bottom:1px solid rgba(176,141,87,.25);}
+table.tabela-real td:first-child{text-align:left; font-family:inherit; font-weight:600; font-size:0.9rem; color:var(--ink);}
+table.tabela-real td[data-label]::before{content:none;}
+table.tabela-real tr:last-child td{border-bottom:none;}
 .aviso-combo{
   display:flex; flex-direction:column; gap:0.5rem; padding:0.8rem 0.95rem; border-radius:16px;
   border:1px dashed var(--gold); font-size:0.9rem;
@@ -342,11 +355,8 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
   <div id="view-contas" class="view">
     <div id="contas"></div>
   </div>
-  <div id="view-custo" class="view">
-    <div id="custo"></div>
-  </div>
-  <div id="view-financeiro" class="view">
-    <div id="financeiro"></div>
+  <div id="view-preco" class="view">
+    <div id="preco"></div>
   </div>
   <div id="view-config" class="view">
     <div id="config"></div>
@@ -426,7 +436,6 @@ function custoIngrediente(ing){
 
 function inputRow(ing){
   const un = ing.unidade === "un" ? "un" : "kg";
-  const pendente = estaPendente(ing);
   let qtyLabel;
   if (ing.porCookie){
     const val = recheioGramas[ing.n] ?? (ing.g > 0 ? ing.g : "");
@@ -436,30 +445,9 @@ function inputRow(ing){
     qtyLabel = un === "un" ? `${ing.qtd ?? 1} un` : `${ing.g}g`;
   }
 
-  let priceCell;
-  if (pendente) {
-    priceCell = `<span style="opacity:0.5;">defina a gramatura</span>`;
-  } else if (un === "un") {
-    const dados = precos[ing.n] || {};
-    priceCell = `
-      <input class="price-input pkg-input" data-ing="${ing.n}" data-field="tam"
-        type="number" step="1" inputmode="decimal" placeholder="qtd compr." value="${dados.tam ?? ""}">
-      R$ <input class="price-input pkg-input" data-ing="${ing.n}" data-field="preco"
-        type="number" step="0.01" inputmode="decimal" placeholder="0,00" value="${dados.preco ?? ""}">`;
-  } else {
-    const dados = precos[ing.n] || {};
-    const tamVal = dados.tam ?? ing.tamTipico ?? "";
-    priceCell = `
-      <input class="price-input pkg-input" data-ing="${ing.n}" data-field="tam"
-        type="number" step="1" inputmode="decimal" placeholder="tam. g" value="${tamVal}">
-      R$ <input class="price-input pkg-input" data-ing="${ing.n}" data-field="preco"
-        type="number" step="0.01" inputmode="decimal" placeholder="0,00" value="${dados.preco ?? ""}">`;
-  }
-
   return `<tr>
     <td>${ing.n}</td>
     <td class="qty">${qtyLabel}</td>
-    <td class="price">${priceCell}</td>
   </tr>`;
 }
 
@@ -467,7 +455,6 @@ function tableHead(){
   return `<thead><tr>
     <th>Ingrediente</th>
     <th class="qty">Usa</th>
-    <th class="price">Pacote · valor pago</th>
   </tr></thead>`;
 }
 
@@ -482,7 +469,7 @@ function custoMassaBase(){
 
 function render(){
   const wrap = document.getElementById("recipes");
-  wrap.innerHTML = "";
+  wrap.innerHTML = `<p style="font-size:0.85rem; opacity:0.75; margin:0 0 0.8rem;">Aqui ficam só as quantidades de cada receita. O preço dos ingredientes fica na aba Comprar.</p>`;
 
   // Massa-base (compartilhada)
   const baseDiv = document.createElement("div");
@@ -495,7 +482,6 @@ function render(){
         style="width:50px; text-align:center; padding:0.2rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;"> cookies por fornada
     </div>
     <table>${tableHead()}<tbody>${massaBase.map(inputRow).join("")}</tbody></table>
-    <div class="summary" id="sum-base"></div>
   `;
   wrap.appendChild(baseDiv);
 
@@ -510,22 +496,8 @@ function render(){
       <h2>${s.nome}</h2>
       <div class="sub">${PESO_MASSA_POR_COOKIE + s.recheio.reduce((a,i)=>a+gramasEfetivas(i),0)}g por cookie</div>
       ${recheioRows}
-      <div class="summary" id="sum-${s.id}"></div>
     `;
     wrap.appendChild(div);
-  });
-
-  wrap.querySelectorAll("input.price-input").forEach(inp=>{
-    inp.addEventListener("input", e=>{
-      const nome = e.target.dataset.ing;
-      const field = e.target.dataset.field;
-      const v = e.target.value;
-      if (!precos[nome] || typeof precos[nome] !== "object") precos[nome] = {};
-      if (v === "") delete precos[nome][field]; else precos[nome][field] = v;
-      if (!precos[nome].tam && !precos[nome].preco) delete precos[nome];
-      savePrecos(precos);
-      updateAllSummaries();
-    });
   });
 
   const rendInput = wrap.querySelector("#rendimento-input");
@@ -543,8 +515,6 @@ function render(){
       render();
     });
   });
-
-  updateAllSummaries();
 }
 
 function custoEmbalagemPorCookie(){
@@ -567,31 +537,6 @@ function custoPorCookieDoSabor(s){
   const faltando = faltBase + faltRecheio;
   return faltando > 0 ? null : (custoMassaPorCookie + custoRecheio + custoEmbalagemPorCookie());
 }
-
-function updateAllSummaries(){
-  const { custo: custoBase, faltando: faltBase } = custoMassaBase();
-  const custoMassaPorCookie = custoBase / RENDIMENTO_FORNADA;
-
-  const baseEl = document.getElementById("sum-base");
-  baseEl.innerHTML = `
-    <div><span class="label">Custo da fornada</span><span class="value">${faltBase>0 ? "incompleto" : "R$ "+custoBase.toFixed(2)}</span></div>
-    <div><span class="label">Custo por cookie</span><span class="value">${faltBase>0 ? "—" : "R$ "+custoMassaPorCookie.toFixed(2)}</span></div>
-  `;
-
-  const custoEmb = custoEmbalagemPorCookie();
-  sabores.forEach(s=>{
-    const custoTotal = custoPorCookieDoSabor(s);
-    const pesoCookie = PESO_MASSA_POR_COOKIE + s.recheio.reduce((a,i)=>a+i.g,0);
-    const el = document.getElementById(`sum-${s.id}`);
-    el.innerHTML = `
-      <div><span class="label">Peso</span><span class="value">${pesoCookie}g</span></div>
-      <div><span class="label">Custo/cookie</span><span class="value">${custoTotal===null ? "—" : "R$ "+custoTotal.toFixed(2)}</span></div>
-      <div><span class="label">(embalagem incluída)</span><span class="value" style="font-size:0.85rem; opacity:0.7;">R$ ${custoEmb.toFixed(2)}</span></div>
-    `;
-  });
-}
-
-
 
 // ---- Estoque ----
 const STOCK_KEY = "casaruth_estoque";
@@ -988,7 +933,7 @@ applyTheme(loadTheme());
 
 // ---- Atalhos customizáveis do Painel ----
 const ATALHOS_KEY = "casaruth_atalhos_extras";
-const DESTINOS_ATALHO = {painel:"Painel", receitas:"Receitas", estoque:"Estoque", comprar:"Comprar", producao:"Produção", vendas:"Vendas", caixa:"Caixa", contas:"Contas", financeiro:"Financeiro", config:"Config"};
+const DESTINOS_ATALHO = {painel:"Painel", receitas:"Receitas", estoque:"Estoque", comprar:"Comprar", producao:"Produção", vendas:"Vendas", caixa:"Caixa", contas:"Contas", preco:"Preço e lucro", config:"Config"};
 function loadAtalhos(){
   try{
     const raw = localStorage.getItem(ATALHOS_KEY);
@@ -1119,7 +1064,7 @@ function renderConfig(){
 
     <div class="recipe">
       <h2>Meta e comparação histórica</h2>
-      <div class="sub">Usados na aba "Custo/cookie" pra projetar o custo com diferentes volumes de produção</div>
+      <div class="sub">Usados na aba "Preço e lucro" pra projetar o custo com diferentes volumes de produção</div>
       <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.6rem;">
         <span>Meta de produção mensal:</span>
         <input id="cfg-meta-producao" type="number" step="1" min="1" value="${metaProducaoMensal}"
@@ -1162,7 +1107,7 @@ function renderConfig(){
       <table><tbody>
         ${atalhosExtras.map((a,i)=>`<tr>
           <td>${esc(a.nome)}</td>
-          <td style="opacity:0.7; font-size:0.85rem;">${DESTINOS_ATALHO[a.destino]||a.destino}</td>
+          <td style="opacity:0.7; font-size:0.85rem;">${DESTINOS_ATALHO[a.destino]||(a.destino==="financeiro"?"Preço e lucro":a.destino)}</td>
           <td class="price" style="text-align:right;">
             <button data-i="${i}" class="rm-atalho" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.2rem 0.6rem; cursor:pointer;">remover</button>
           </td>
@@ -1285,170 +1230,165 @@ function renderConfig(){
   });
 }
 
-function renderCusto(){
-  const el = document.getElementById("custo");
-  const mAtual = mesAtual();
-
-  // cookies bons produzidos este mes, em ordem de data, pra montar a trajetoria
-  const fornadasMes = historicoProducao
-    .filter(f=> (f.dataISO || f.data.split("/").reverse().join("-")).slice(0,7) === mAtual)
-    .slice()
-    .sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
-
-  let acumulado = 0;
-  const pontos = fornadasMes.map(f=>{
-    acumulado += f.bons;
-    return { x: acumulado, y: custoProjetado(acumulado) };
-  }).filter(p=> p.y !== null);
-
-  const bonsMes = acumulado;
-  const custoAtual = bonsMes>0 ? custoProjetado(bonsMes) : null;
-  const meta = parseFloat(metaProducaoMensal) || null;
-  const custoMeta = meta ? custoProjetado(meta) : null;
-  const base = volumeBaseComparacao();
-  const custoBase = base.valor ? custoProjetado(base.valor) : null;
-
-  let textoExplicativo;
-  if (custoVariavelMedio()===null){
-    textoExplicativo = "Preencha os preços dos ingredientes em Receitas pra calcular isso.";
-  } else {
-    const partes = [];
-    partes.push(bonsMes>0
-      ? `Hoje, com ${bonsMes} cookies feitos este mês, seu cookie está custando <strong>R$ ${custoAtual.toFixed(2)}</strong>.`
-      : `Você ainda não registrou fornada este mês — assim que registrar, essa linha mostra o custo real.`);
-    if (custoMeta!==null) partes.push(`Se bater a meta de ${meta} cookies, cai pra <strong>R$ ${custoMeta.toFixed(2)}</strong>.`);
-    if (custoBase!==null) partes.push(`Pela ${base.origem} (${Math.round(base.valor)} cookies), ficaria em <strong>R$ ${custoBase.toFixed(2)}</strong>.`);
-    textoExplicativo = partes.join(" ");
-  }
-
-  // ---- grafico SVG ----
-  let svgChart = "";
-  if (pontos.length >= 1 && (custoMeta!==null || custoBase!==null)){
-    const W = 680, H = 220, padL = 50, padR = 20, padT = 16, padB = 30;
-    const todosY = pontos.map(p=>p.y).concat([custoMeta, custoBase].filter(v=>v!==null));
-    const maxX = Math.max(meta||0, base.valor||0, acumulado, 1);
-    const minY = Math.min(...todosY) * 0.9;
-    const maxY = Math.max(...todosY) * 1.1;
-    const sx = x => padL + (x/maxX) * (W-padL-padR);
-    const sy = y => H-padB - ((y-minY)/(maxY-minY||1)) * (H-padT-padB);
-
-    const linhaReal = pontos.map(p=>`${sx(p.x)},${sy(p.y)}`).join(" ");
-    const pontosCirculos = pontos.map(p=>`<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="3.5" fill="var(--wine)"/>`).join("");
-
-    svgChart = `
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; margin-top:0.8rem;">
-      <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--gold)" stroke-width="1"/>
-      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--gold)" stroke-width="1"/>
-      ${custoMeta!==null ? `<line x1="${padL}" y1="${sy(custoMeta)}" x2="${W-padR}" y2="${sy(custoMeta)}" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="5,4"/>
-      <text x="${W-padR}" y="${sy(custoMeta)-4}" text-anchor="end" font-size="10" fill="var(--gold)">meta: R$${custoMeta.toFixed(2)}</text>` : ""}
-      ${custoBase!==null ? `<line x1="${padL}" y1="${sy(custoBase)}" x2="${W-padR}" y2="${sy(custoBase)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="2,3" opacity=".55"/>
-      <text x="${W-padR}" y="${sy(custoBase)-4}" text-anchor="end" font-size="10" fill="var(--ink)" opacity=".7">${base.origem}: R$${custoBase.toFixed(2)}</text>` : ""}
-      ${pontos.length>1 ? `<polyline points="${linhaReal}" fill="none" stroke="var(--wine)" stroke-width="2.5"/>` : ""}
-      ${pontosCirculos}
-      <text x="${padL}" y="${H-10}" font-size="10" fill="var(--ink)" opacity=".6">cookies produzidos no mês →</text>
-    </svg>`;
-  }
-
-  el.innerHTML = `
-    <div class="recipe">
-      <h2>Quanto meu cookie está custando</h2>
-      <p style="font-size:0.95rem; line-height:1.5;">${textoExplicativo}</p>
-      ${svgChart}
-      ${!svgChart ? `<p style="font-size:0.85rem; opacity:0.65; margin-top:0.6rem;">Preencha a meta e/ou a base histórica em Config, e registre fornadas, pra ver o gráfico.</p>` : ""}
-    </div>
-    <div class="recipe">
-      <h2>O que está pesando no custo</h2>
-      <div class="summary">
-        <div><span class="label">Custo variável médio</span><span class="value">${custoVariavelMedio()!==null?"R$ "+custoVariavelMedio().toFixed(2):"—"}</span></div>
-        <div><span class="label">Custos fixos/mês</span><span class="value">R$ ${totalCustosFixos().toFixed(2)}</span></div>
-      </div>
-      <p style="font-size:0.85rem; opacity:0.7; margin-top:0.6rem;">O variável (ingrediente + embalagem) é praticamente fixo por cookie. O que baixa o custo total é produzir mais — os custos fixos se diluem entre mais cookies.</p>
-    </div>
-  `;
+// ---- Preço e lucro (passo 5b): junta o antigo Custo/cookie e Financeiro ----
+// Custo por cookie se os preços ficarem iguais ao ÚLTIMO PAGO de cada item (só leitura, não grava nada)
+function custoPorCookieUltimoPago(s){
+  const fator = nome => { const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome); return (c && u) ? u / c : 1; };
+  let massa = 0, rec = 0, emb = 0;
+  massaBase.forEach(ing=>{ const c = custoIngrediente(ing); if (c !== null) massa += c * fator(ing.n); });
+  s.recheio.forEach(ing=>{ const c = custoIngrediente(ing); if (c !== null) rec += c * fator(ing.n); });
+  itensExtras.forEach(it=>{
+    if (!it.porCookie) return;
+    const p = parseFloat(it.precoUnitario);
+    if (!isNaN(p)) emb += p * fator(it.nome);
+  });
+  return massa / RENDIMENTO_FORNADA + rec + emb;
 }
 
-function renderFinanceiro(){
-  const el = document.getElementById("financeiro");
-  const nomesSabor = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
+function renderPreco(){
+  const el = document.getElementById("preco");
+  if (!el) return;
+  const fixo = totalCustosFixos();
+  const base = volumeBaseComparacao();
+  const meta = parseFloat(metaProducaoMensal) || null;
+  const vol = base.valor || meta || null;
+  const origemVol = base.valor ? base.origem : "meta do mês";
+  const fixoPorCookie = vol ? fixo / vol : null;
+  const verde = "color:#3F7D4F;", vinho = "color:var(--wine);";
 
-  let linhas = "", margens = [];
-  sabores.forEach(s=>{
-    const custo = custoPorCookieDoSabor(s);
+  // uma linha de contas por sabor
+  const lin = sabores.map(s=>{
+    const custoVar = custoPorCookieDoSabor(s);
     const preco = parseFloat(precosVenda[s.id]);
-    let margemRS = null, margemPct = null, markupPct = null;
-    if (custo !== null && !isNaN(preco) && preco > 0){
-      margemRS = preco - custo;
-      margemPct = (margemRS / preco) * 100;
-      markupPct = custo > 0 ? (margemRS / custo) * 100 : null;
-      margens.push(margemRS);
-    }
-    linhas += `<tr>
-      <td>${nomesSabor[s.id]}</td>
-      <td class="qty">${custo===null?"—":"R$ "+custo.toFixed(2)}</td>
-      <td class="qty">${isNaN(preco)?"—":"R$ "+preco.toFixed(2)}</td>
-      <td class="price">${margemRS===null?"—":`R$ ${margemRS.toFixed(2)} (${margemPct.toFixed(0)}%)`}</td>
-    </tr>`;
+    const temPreco = !isNaN(preco) && preco > 0;
+    const ok = custoVar !== null && temPreco && fixoPorCookie !== null;
+    const custoTotal = ok ? custoVar + fixoPorCookie : null;
+    const sobra = ok ? preco - custoTotal : null;
+    const pct = ok ? (sobra / preco) * 100 : null;
+    const sugerido = ok ? custoTotal / (1 - margemDesejada / 100) : null;
+    // quanto o custo de ingrediente+embalagem precisaria cair para manter a margem sem mexer no preço
+    const custoVarMax = ok ? preco * (1 - margemDesejada / 100) - fixoPorCookie : null;
+    const cortar = ok ? custoVar - custoVarMax : null;
+    const ult = custoVar !== null ? custoPorCookieUltimoPago(s) : null;
+    return { s, nome: NOME_SABOR[s.id], custoVar, preco, temPreco, ok, custoTotal, sobra, pct, sugerido, cortar, ult };
   });
+  const completos = lin.filter(l=>l.ok);
+  const semCusto = lin.filter(l=>l.custoVar === null).map(l=>l.nome);
+  const semVenda = lin.filter(l=>!l.temPreco).map(l=>l.nome);
 
-  const totalFixo = totalCustosFixos();
-  const margemMedia = margens.length ? margens.reduce((a,b)=>a+b,0)/margens.length : null;
-  const pontoEquilibrio = margemMedia && margemMedia > 0 ? Math.ceil(totalFixo / margemMedia) : null;
+  // ---- 1) veredito ----
+  let veredito;
+  if (!completos.length){
+    veredito = `<p style="font-size:0.95rem; line-height:1.5;">Ainda não dá para dizer. ${semCusto.length ? `Falta preço de ingrediente em: ${semCusto.join(", ")} (registre a compra na aba Comprar). ` : ""}${semVenda.length ? `Falta o preço de venda de: ${semVenda.join(", ")} (Config). ` : ""}${!vol ? "Falta a meta do mês ou a base de cookies por mês em Config." : ""}</p>`;
+  } else {
+    const prejuizo = completos.filter(l=>l.sobra < 0).map(l=>l.nome);
+    const baratos = completos.filter(l=>l.sobra >= 0 && l.pct < margemDesejada).map(l=>l.nome);
+    const linhas = [];
+    linhas.push(prejuizo.length
+      ? `<span style="${vinho} font-weight:600;">Não está dando lucro em: ${prejuizo.join(", ")}.</span> Cada cookie vendido custa mais do que você cobra.`
+      : `<span style="${verde} font-weight:600;">Está dando lucro em todos os sabores calculados.</span>`);
+    linhas.push(baratos.length
+      ? `Cookie barato para a margem que você quer (${margemDesejada}%): ${baratos.join(", ")}.`
+      : (prejuizo.length === completos.length ? "" : `Os preços batem com a margem que você quer (${margemDesejada}%).`));
+    if (semCusto.length || semVenda.length) linhas.push(`<span style="font-size:0.85rem; opacity:0.75;">Fora da conta por falta de dado: ${[...new Set([...semCusto, ...semVenda])].join(", ")}.</span>`);
+    veredito = `<p style="font-size:0.95rem; line-height:1.6;">${linhas.filter(Boolean).join("<br>")}</p>`;
+  }
 
-  // Cookies produzidos este mês (bons), para ratear o custo fixo
-  const mAtual = mesAtual();
-  let bonsMes = 0;
-  historicoProducao.forEach(f=>{
-    const anoMes = (f.dataISO || f.data.split("/").reverse().join("-")).slice(0,7);
-    if (anoMes === mAtual) bonsMes += f.bons;
+  // ---- 2) tabela por sabor ----
+  const tabela = lin.map(l=>`<tr>
+      <td>${l.nome}</td>
+      <td class="qty">${l.custoTotal === null ? "—" : brl(l.custoTotal)}</td>
+      <td class="qty">${l.temPreco ? brl(l.preco) : "—"}</td>
+      <td class="price" style="${l.sobra !== null ? (l.sobra < 0 ? vinho : "") : ""}">${l.sobra === null ? "—" : `${brl(l.sobra)} (${l.pct.toFixed(0)}%)`}</td>
+    </tr>`).join("");
+  const cvMedio = custoVariavelMedio();
+  const explicaCusto = (cvMedio !== null && fixoPorCookie !== null)
+    ? `Custo = ingredientes e embalagem (em média ${brl(cvMedio)}) + parte das contas fixas (${brl(fixoPorCookie)} por cookie: ${brl(fixo)} do mês divididos por ${Math.round(vol)} cookies, ${origemVol}). Sobra = preço de venda menos o custo.`
+    : "O custo aparece quando todos os ingredientes tiverem preço e houver uma base de cookies por mês em Config.";
+
+  // ---- 3) o que acontece se continuar assim ----
+  let futuro = "";
+  if (completos.length){
+    const margemMed = completos.reduce((a,l)=> a + (l.preco - l.custoVar), 0) / completos.length;
+    const equilibrio = margemMed > 0 ? Math.ceil(fixo / margemMed) : null;
+    const lucroVol = margemMed * vol - fixo;
+    const cenarios = [Math.round(vol * 0.5), Math.round(vol), Math.round(vol * 1.5)];
+    futuro = `<div class="recipe">
+      <h2>Se continuar assim</h2>
+      <div class="summary">
+        <div><span class="label">Precisa vender para empatar</span><span class="value">${equilibrio === null ? "nunca (preço menor que o custo)" : equilibrio + " cookies/mês"}</span></div>
+        <div><span class="label">Se vender ${Math.round(vol)} por mês</span><span class="value" style="${lucroVol < 0 ? vinho : verde}">${lucroVol < 0 ? "perde " : "sobra "}${brl(Math.abs(lucroVol))}</span></div>
+      </div>
+      <div class="sub" style="margin-top:0.6rem;">Quanto cada cookie custa, conforme o tanto que você produz no mês (as contas fixas se diluem):</div>
+      <div class="summary" style="margin-top:0.3rem;">
+        ${cenarios.map(n=>`<div><span class="label">${n} cookies</span><span class="value">${brl(cvMedio + fixo / n)}</span></div>`).join("")}
+      </div>
+      <p style="font-size:0.8rem; opacity:0.65; margin-top:0.5rem;">Conta feita com a média dos sabores. O lucro real do mês, com o que já foi vendido, está no Painel.</p>
+    </div>`;
+  }
+
+  // ---- 4) ingredientes: subindo ou não ----
+  const nomesItens = todosIngredientesUnicos().map(i=>i.n).concat(itensExtras.map(it=>it.nome));
+  const mov = [];
+  nomesItens.forEach(nome=>{
+    const info = infoItemCompra(nome); if (!info) return;
+    const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome);
+    if (c === null || u === null) return;
+    const v = (u - c) / c * 100;
+    if (Math.abs(v) >= 3) mov.push({ nome, v, porKg: info.un === "g", c, u });
   });
-  const fixoPorCookie = bonsMes > 0 ? totalFixo / bonsMes : null;
+  mov.sort((a,b)=> b.v - a.v);
+  const fmtP = (m, n) => m.porKg ? brl(n * 1000) + "/kg" : brlUn(n) + "/un";
+  const comUlt = lin.filter(l=>l.ult !== null && l.temPreco && fixoPorCookie !== null);
+  let efeito = "";
+  if (comUlt.length){
+    const dif = comUlt.reduce((a,l)=> a + (l.ult - l.custoVar), 0) / comUlt.length;
+    efeito = Math.abs(dif) < 0.005
+      ? `Os últimos preços pagos estão iguais ao custo médio: nada pesando a mais.`
+      : (dif > 0
+        ? `<span style="${vinho}">Se os preços da última compra viram o normal, cada cookie passa a custar ${brl(dif)} a mais (média dos sabores).</span>`
+        : `Se os preços da última compra viram o normal, cada cookie passa a custar ${brl(-dif)} a menos (média dos sabores).`);
+  }
+  const ingred = `<div class="recipe">
+      <h2>Os ingredientes estão subindo?</h2>
+      ${mov.length ? `<table class="tabela-real" style="margin-top:0.4rem;"><thead><tr><th>Item</th><th class="qty">Médio</th><th class="qty">Último</th><th class="price">Variação</th></tr></thead><tbody>${mov.slice(0,8).map(m=>`<tr>
+        <td>${esc(m.nome)}</td><td class="qty">${fmtP(m, m.c)}</td><td class="qty">${fmtP(m, m.u)}</td>
+        <td class="price" style="${m.v > 0 ? vinho : verde}">${m.v > 0 ? "+" : ""}${m.v.toFixed(0)}%</td></tr>`).join("")}</tbody></table>`
+        : `<p style="font-size:0.9rem; opacity:0.75;">Nenhum item com mudança de 3% ou mais entre o custo médio e o último preço pago (ou ainda não há compras registradas com valor).</p>`}
+      ${efeito ? `<p style="font-size:0.88rem; line-height:1.5; margin-top:0.6rem;">${efeito}</p>` : ""}
+    </div>`;
+
+  // ---- 5) subir o preço ou controlar a compra ----
+  const decisao = completos.length ? `<div class="recipe">
+      <h2>Subir o preço ou controlar a compra?</h2>
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.4rem;">
+        <span>Margem que eu quero:</span>
+        <input id="margem-desejada" type="number" step="1" min="0" max="94" value="${margemDesejada}" style="width:60px; text-align:right; padding:0.3rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">%
+      </div>
+      <ul style="margin:0.6rem 0 0; padding-left:1.2rem; font-size:0.9rem; line-height:1.5;">
+        ${completos.map(l=> l.pct >= margemDesejada
+          ? `<li><strong>${l.nome}:</strong> o preço de ${brl(l.preco)} já dá ${l.pct.toFixed(0)}%. Não precisa subir.</li>`
+          : `<li><strong>${l.nome}:</strong> para ter ${margemDesejada}% o preço teria de ser <strong>${brl(l.sugerido)}</strong> (hoje ${brl(l.preco)}). ${l.cortar < l.custoVar * 0.3 ? `Ou, sem mexer no preço, baixar o custo de ingredientes e embalagem em ${brl(l.cortar)} por cookie (${(l.cortar / l.custoVar * 100).toFixed(0)}%), comprando mais barato.` : `Comprar mais barato não resolve sozinho (o corte pedido é grande demais): aqui precisa subir o preço.`}</li>`).join("")}
+      </ul>
+      <p style="font-size:0.8rem; opacity:0.65; margin-top:0.5rem;">Comprar com desconto resolve quando o corte pedido é pequeno. Se for grande, só subir o preço resolve.</p>
+    </div>` : "";
 
   el.innerHTML = `
     <div class="recipe">
-      <h2>Custo, preço e margem por sabor</h2>
-      <table><thead><tr>
-        <th>Sabor</th><th class="qty">Custo</th><th class="qty">Venda</th><th class="price">Margem</th>
-      </tr></thead><tbody>${linhas}</tbody></table>
+      <h2>Estou tendo lucro?</h2>
+      ${veredito}
+      <table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Sabor</th><th class="qty">Custo</th><th class="qty">Venda</th><th class="price">Sobra</th></tr></thead><tbody>${tabela}</tbody></table>
+      <p style="font-size:0.8rem; opacity:0.65; margin-top:0.5rem;">${explicaCusto}</p>
     </div>
-    <div class="recipe">
-      <h2>Ponto de equilíbrio</h2>
-      <div class="summary">
-        <div><span class="label">Custos fixos/mês</span><span class="value">R$ ${totalFixo.toFixed(2)}</span></div>
-        <div><span class="label">Margem média/cookie</span><span class="value">${margemMedia===null?"—":"R$ "+margemMedia.toFixed(2)}</span></div>
-        <div><span class="label">Precisa vender</span><span class="value">${pontoEquilibrio===null?"—":pontoEquilibrio+" cookies/mês"}</span></div>
-      </div>
-      ${pontoEquilibrio===null ? `<p style="font-size:0.85rem; opacity:0.7; margin-top:0.6rem;">Preencha os preços das receitas e os preços de venda em Config para calcular.</p>` : ""}
-    </div>
-    <div class="recipe">
-      <h2>Simulador de preço</h2>
-      <p style="font-size:0.82rem; opacity:0.6; margin-top:-0.3rem;">O custo detalhado e a tendência ao longo do mês ficam na aba Custo/cookie.</p>
-      <div class="sub">Quero tanto % de margem — qual preço cada cookie precisa ter? Usa o custo real (com a fatia do fixo deste mês).</div>
-      <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.6rem;">
-        <span>Margem desejada:</span>
-        <input id="margem-desejada" type="number" step="1" min="0" max="95" value="${margemDesejada}"
-          style="width:60px; text-align:right; padding:0.3rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">%
-      </div>
-      ${bonsMes===0 ? `<p style="font-size:0.85rem; opacity:0.7; margin-top:0.6rem;">Precisa de cookies produzidos este mês pra calcular o custo real.</p>` : `
-      <table style="margin-top:0.6rem;"><thead><tr><th>Sabor</th><th class="qty">Custo real</th><th class="qty">Preço atual</th><th class="price">Preço sugerido</th></tr></thead>
-      <tbody>${sabores.map(s=>{
-        const custoVar = custoPorCookieDoSabor(s);
-        const custoTotal = (custoVar!==null && fixoPorCookie!==null) ? custoVar+fixoPorCookie : null;
-        const precoAtual = parseFloat(precosVenda[s.id]);
-        const precoSugerido = custoTotal!==null ? custoTotal / (1 - margemDesejada/100) : null;
-        return `<tr>
-          <td>${nomesSabor[s.id]}</td>
-          <td class="qty">${custoTotal===null?"—":"R$ "+custoTotal.toFixed(2)}</td>
-          <td class="qty">${isNaN(precoAtual)?"—":"R$ "+precoAtual.toFixed(2)}</td>
-          <td class="price" style="font-weight:600;">${precoSugerido===null?"—":"R$ "+precoSugerido.toFixed(2)}</td>
-        </tr>`;
-      }).join("")}</tbody></table>`}
-    </div>
+    ${futuro}
+    ${ingred}
+    ${decisao}
   `;
 
-  const margemInput = el.querySelector("#margem-desejada");
-  if (margemInput) margemInput.addEventListener("input", e=>{
+  const mi = el.querySelector("#margem-desejada");
+  if (mi) mi.addEventListener("change", e=>{
     const v = parseFloat(e.target.value);
-    if (!isNaN(v) && v>=0 && v<95){ margemDesejada = v; renderFinanceiro(); }
+    if (!isNaN(v) && v >= 0 && v < 95){ margemDesejada = v; renderPreco(); }
   });
 }
 
@@ -1492,7 +1432,7 @@ function tabelaSaldos(){
   const linhas = sabores.map(s=>`<tr><td>${NOME_SABOR[s.id]||s.id}</td>
     <td class="qty">${saldoTexto(saldoDe("congelados", s.id))}</td>
     <td class="qty">${saldoTexto(saldoDe("assados", s.id))}</td></tr>`).join("");
-  return `<table><thead><tr><th>Sabor</th><th class="qty">Congelados</th><th class="qty">Assados</th></tr></thead><tbody>${linhas}</tbody></table>`;
+  return `<table class="tabela-real"><thead><tr><th>Sabor</th><th class="qty">Congelados</th><th class="qty">Assados</th></tr></thead><tbody>${linhas}</tbody></table>`;
 }
 
 // sinal -1 = desconta os ingredientes; +1 = devolve. Retorna a lista do que ficou faltando.
@@ -2364,6 +2304,42 @@ function opcoesUnidadeCompra(nome){
   return [{v:"un", t:"un", f:1}];
 }
 
+// Último preço pago por item (olhando as compras registradas). Devolve valor por grama ou por unidade.
+function ultimoPrecoPago(nome){
+  for (let i = historicoCompras.length - 1; i >= 0; i--){
+    const d = (historicoCompras[i].itens || []).find(x=> x.nome === nome && x.valor > 0 && x.qtd > 0);
+    if (d) return d.valor / d.qtd;
+  }
+  return null;
+}
+// Cartão com o preço de cada item: é aqui que mora o preço (a média é refeita a cada compra)
+function cartaoPrecosItens(){
+  const nomes = todosIngredientesUnicos().map(i=>i.n).concat(itensExtras.map(it=>it.nome));
+  const linhas = nomes.map(nome=>{
+    const info = infoItemCompra(nome);
+    if (!info) return "";
+    const porKg = info.un === "g";
+    const fmt = n => porKg ? brl(n * 1000) + "/kg" : brlUn(n) + "/un";
+    const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome);
+    return `<tr>
+      <td>${esc(nome)}</td>
+      <td class="price" style="text-align:right;">${c === null ? `<span style="color:var(--wine);">sem preço</span>` : fmt(c)}</td>
+      <td class="price" style="text-align:right;">${u === null ? "—" : fmt(u)}</td>
+      <td style="text-align:right;"><button class="btn-sec cp-corrigir" data-nome="${esc(nome)}" type="button" style="padding:0.2rem 0.55rem; font-size:0.78rem;">Corrigir</button></td>
+    </tr>`;
+  }).join("");
+  return `<div class="recipe">
+    <h2>Preço de cada item</h2>
+    <div class="sub">Custo médio: o app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar. Este é o único lugar dos preços.</div>
+    <table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Item</th><th class="price" style="text-align:right;">Custo médio</th><th class="price" style="text-align:right;">Último pago</th><th></th></tr></thead><tbody>${linhas}</tbody></table>
+  </div>`;
+}
+function lerValorDigitado(txt){
+  let t = String(txt).trim().replace(/^R\$\s*/i, "");
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  return parseFloat(t);
+}
+
 function renderComprar(aviso){
   const el = document.getElementById("comprar");
   if (!el) return;
@@ -2403,6 +2379,8 @@ function renderComprar(aviso){
         <div id="nota-resultado"></div>
       </div>
     </div>
+
+    ${cartaoPrecosItens()}
 
     <div class="recipe">
       <h2>Últimas compras</h2>
@@ -2458,6 +2436,26 @@ function renderComprar(aviso){
     }
     previa.innerHTML = h;
   }
+  el.querySelectorAll(".cp-corrigir").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const nome = b.dataset.nome;
+      const info = infoItemCompra(nome);
+      if (!info) return;
+      const porKg = info.un === "g";
+      const txt = prompt(`Quanto está custando "${nome}" agora? Digite o preço por ${porKg ? "kg" : "unidade"} (ex.: 12,50).\nIsso corrige o custo médio; as próximas compras continuam a média a partir desse valor.`);
+      if (txt === null) return;
+      const v = lerValorDigitado(txt);
+      if (!(v > 0)){ alert("Digite um valor maior que zero, por exemplo 12,50."); return; }
+      if (info.tipo === "extra"){
+        info.extra.precoUnitario = v.toFixed(4);
+        saveExtras(itensExtras);
+      } else {
+        precos[nome] = porKg ? { tam: "1000", preco: String(arred(v, 2)) } : { tam: "1", preco: String(arred(v, 4)) };
+        savePrecos(precos);
+      }
+      renderComprar(`Custo de <b>${esc(nome)}</b> corrigido para ${porKg ? brl(v) + "/kg" : brlUn(v) + "/un"}.`);
+    });
+  });
   sel.addEventListener("change", trocouItem);
   [selUn, qtdEl, valEl].forEach(x=> x.addEventListener("input", atualizarPrevia));
   selUn.addEventListener("change", atualizarPrevia);
@@ -2713,26 +2711,6 @@ function desfazerConta(mes, c){
 }
 // </contas-logica>
 
-function cartaoContasPainel(){
-  const mes = mesAtual();
-  const lista = contasDoMes(mes);
-  if (!lista.length) return "";
-  const rc = resumoContas();
-  const pagas = lista.filter(c=>c.pago).length;
-  const alerta = rc.livre < 0;
-  return `
-    <div class="recipe" style="${alerta ? "border-color:var(--wine);" : ""}">
-      <h2>Contas do mês</h2>
-      <div class="summary">
-        <div><span class="label">Pagas</span><span class="value">${pagas} de ${lista.length}</span></div>
-        <div><span class="label">A pagar</span><span class="value">R$ ${(rc.pend+rc.pendAnt).toFixed(2)}</span></div>
-        <div><span class="label">Dinheiro livre</span><span class="value" style="${alerta?"color:var(--wine);":""}">R$ ${rc.livre.toFixed(2)}</span></div>
-      </div>
-      ${alerta ? `<p style="font-size:0.85rem; color:var(--wine); margin-top:0.6rem;">O caixa não cobre as contas pendentes: faltam R$ ${(-rc.livre).toFixed(2)}.</p>` : ""}
-      <div style="margin-top:0.7rem;"><button class="btn-sec" onclick="irPara('contas')">Abrir contas do mês</button></div>
-    </div>`;
-}
-
 function renderContas(){
   const el = document.getElementById("contas");
   const atual = mesAtual();
@@ -2960,18 +2938,19 @@ function renderPainel(){
     textoEstoqueResumo = partes.length ? partes.join(" · ") : "Nenhum sabor limitado pelo estoque agora.";
   }
 
-  // O que precisa ser feito
+  // Preciso comprar algo? (itens negativos, zerados e sabores que não dá mais pra fazer)
+  const paraComprar = new Map();
+  itensEmFalta().forEach(x=> paraComprar.set(x.nome, x.tipo === "negativo" ? `${esc(x.nome)} (negativo)` : esc(x.nome)));
+  if (algumEstoqueCadastrado) dadosSabor.forEach(d=>{
+    if (!d.estoqueVazio && !d.receitaIncompleta && d.minCookies === 0 && d.gargalo && !paraComprar.has(d.gargalo)) paraComprar.set(d.gargalo, `${esc(d.gargalo)} (${esc(d.nome)} zerado)`);
+  });
+  const listaCompra = [...paraComprar.values()];
+
+  // Outros avisos (o que não é compra)
   let acoes = [];
-  if (!algumEstoqueCadastrado){
-    acoes.push(`Estoque ainda não foi cadastrado — preencha em Estoque para saber o que comprar`);
-  } else {
-    dadosSabor.forEach(d=>{ if (!d.estoqueVazio && !d.receitaIncompleta && d.minCookies === 0) acoes.push(`Comprar ${d.gargalo} — ${d.nome} está zerado`); });
-  }
-  const emFaltaNeg = itensEmFalta().filter(x=>x.tipo === "negativo");
-  if (emFaltaNeg.length) acoes.push(`Estoque negativo: ${emFaltaNeg.map(x=>`${esc(x.nome)} (${fmtQtdCompra(x.un, x.qtd)})`).join(", ")} — registre a compra em Comprar ou corrija a contagem em Estoque`);
-  if (pontoEquilibrio!==null && vendidosMes < pontoEquilibrio) acoes.push(`Faltam ${pontoEquilibrio-vendidosMes} cookies vendidos para bater a meta do mês`);
-  if (pctPerda!==null && pctPerda > 10) acoes.push(`Perda do mês em ${pctPerda.toFixed(0)}% (R$ ${custoDesperdicioMes.toFixed(2)} em ingrediente perdido) — vale olhar o forno ou a receita`);
-  if (sabores.some(s=>isNaN(parseFloat(precosVenda[s.id])))) acoes.push(`Tem sabor sem preço de venda definido — confira em Config`);
+  if (!algumEstoqueCadastrado) acoes.push(`Estoque ainda não foi cadastrado: preencha em Estoque para o app saber o que falta`);
+  if (pctPerda!==null && pctPerda > 10) acoes.push(`Perda do mês em ${pctPerda.toFixed(0)}% (R$ ${custoDesperdicioMes.toFixed(2)} em ingrediente perdido): vale olhar o forno ou a receita`);
+  if (sabores.some(s=>isNaN(parseFloat(precosVenda[s.id])))) acoes.push(`Tem sabor sem preço de venda definido: confira em Config`);
   if (custoPorCookieDoSabor(sabores.find(s=>s.id==="kinder")) === null) acoes.push(`Recheio do Kinder Ruth ainda não tem gramatura/preço definidos`);
 
   // Semáforo do mês
@@ -2986,6 +2965,16 @@ function renderPainel(){
     else status = {cor:"var(--wine)", texto:"Abaixo do ritmo esperado pro mês"};
   }
 
+  // As 4 perguntas do dia
+  const rc = resumoContas();
+  const temContas = contasDoMes(mAtual).length > 0;
+  const totalAssados = sabores.reduce((t,s)=> t + saldoDe("assados", s.id), 0);
+  const totalCongelados = sabores.reduce((t,s)=> t + saldoDe("congelados", s.id), 0);
+  const corLucro = lucroRealMes < 0 ? "var(--wine)" : "#3F7D4F";
+  const grande = "font-size:1.6rem; font-weight:700; line-height:1.2;";
+  const nota = "font-size:0.85rem; opacity:0.8; margin-top:0.3rem; line-height:1.45;";
+  const verTudo = (dest, txt)=> `<div style="margin-top:0.6rem;"><button class="btn-sec" type="button" onclick="irPara('${dest}')">${txt}</button></div>`;
+
   el.innerHTML = `
     <div class="recipe" style="display:flex; align-items:center; gap:0.7rem;">
       <div style="width:14px; height:14px; border-radius:50%; background:${status.cor}; flex-shrink:0;"></div>
@@ -2997,43 +2986,50 @@ function renderPainel(){
       ${atalhosExtras.map((a,i)=>`<button class="atalho-extra" data-i="${i}" style="flex:1; min-width:140px; border:1px solid var(--gold); background:transparent; color:var(--ink); border-radius:6px; padding:0.6rem; cursor:pointer; font-family:inherit;">${esc(a.nome)}</button>`).join("")}
     </div>
     ${avisoBackupPainel()}
-    ${cartaoContasPainel()}
-    <div class="recipe">
-      <h2>Financeiro do mês</h2>
-      <div class="summary">
-        <div><span class="label">Vendidos</span><span class="value">${vendidosMes} cookies</span></div>
-        <div><span class="label">Receita</span><span class="value">R$ ${receitaMes.toFixed(2)}</span></div>
-        <div><span class="label">Ingredientes dos vendidos</span><span class="value">R$ ${custoIngVendidosMes.toFixed(2)}</span></div>
-        <div><span class="label">Embalagens</span><span class="value">R$ ${custoEmbMes.toFixed(2)}</span></div>
-        <div><span class="label">Queimados</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">R$ ${custoDesperdicioMes.toFixed(2)}</span></div>
-        <div><span class="label">Contas fixas do mês</span><span class="value">R$ ${totalFixo.toFixed(2)}</span></div>
-        <div><span class="label">Lucro real até agora</span><span class="value" style="${lucroRealMes<0?'color:var(--wine);':'color:#3F7D4F;'}">R$ ${lucroRealMes.toFixed(2)}</span></div>
-      </div>
-      <p style="font-size:0.8rem; opacity:0.7; margin-top:0.5rem;">Lucro real = receita menos o custo do que foi vendido (ingredientes e embalagens), menos os cookies queimados, menos as contas fixas do mês inteiro.</p>
-      ${vendasSemCusto ? `<p style="font-size:0.82rem; color:var(--wine); margin-top:0.4rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente em Receitas ou em Comprar). O lucro pode estar maior do que o real.</p>` : ""}
-      ${vendasEstimadas ? `<p style="font-size:0.8rem; opacity:0.7; margin-top:0.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
-      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">Meta do mês: ${pontoEquilibrio} cookies. ${vendidosMes >= pontoEquilibrio ? `Já batida ${ICONE_OK}` : `Faltam ${pontoEquilibrio-vendidosMes}.`}</p>` : `<p style="font-size:0.85rem; opacity:0.6; margin-top:0.6rem;">Preencha preços em Receitas e Config para calcular a meta.</p>`}
+    <div class="recipe" style="${rc.livre < 0 && temContas ? "border-color:var(--wine);" : ""}">
+      <h2>Tenho dinheiro?</h2>
+      <div style="${grande}${rc.saldo < 0 ? "color:var(--wine);" : ""}">${brl(rc.saldo)}</div>
+      <div style="${nota}">no Caixa agora.${temContas ? (rc.livre < 0
+        ? ` <span style="color:var(--wine);">Não cobre as contas pendentes: faltam ${brl(-rc.livre)}.</span>`
+        : (rc.pend + rc.pendAnt === 0 ? " Todas as contas do mês estão pagas." : ` Separando as contas pendentes, sobram ${brl(rc.livre)} livres.`)) : ""}</div>
+      ${verTudo("caixa", "Abrir Caixa")}
     </div>
     <div class="recipe">
-      <h2>Custo do cookie</h2>
-      <div class="summary">
-        <div><span class="label">Agora (este mês)</span><span class="value">${bonsMes>0 && custoProjetado(bonsMes)!==null ? "R$ "+custoProjetado(bonsMes).toFixed(2) : "—"}</span></div>
-        <div><span class="label">Na meta (${metaProducaoMensal})</span><span class="value">${custoProjetado(parseFloat(metaProducaoMensal))!==null ? "R$ "+custoProjetado(parseFloat(metaProducaoMensal)).toFixed(2) : "—"}</span></div>
-      </div>
-      <p style="font-size:0.82rem; opacity:0.65; margin-top:0.4rem;">Gráfico e detalhes na aba Custo/cookie.</p>
+      <h2>Preciso comprar algo?</h2>
+      ${listaCompra.length
+        ? `<div style="${grande}">${listaCompra.length} ${listaCompra.length === 1 ? "item" : "itens"}</div><div style="${nota}">${listaCompra.slice(0,4).join(", ")}${listaCompra.length > 4 ? ` e mais ${listaCompra.length - 4}` : ""}.</div>`
+        : `<div style="${grande}">Nada urgente</div><div style="${nota}">Nenhum item zerado ou negativo no estoque.</div>`}
+      ${verTudo("comprar", "Abrir Comprar")}
     </div>
     <div class="recipe">
-      <h2>Estoque</h2>
-      <div class="summary">
-        <div><span class="label">Dá pra fazer agora (qualquer sabor)</span><span class="value">${totalDaPraFazer} cookies</span></div>
-      </div>
-      <p style="font-size:0.8rem; opacity:0.6; margin-top:0.3rem;">Teto da massa-base que você tem — o recheio de cada sabor pode limitar ainda mais.</p>
-      <p style="font-size:0.85rem; opacity:0.75; margin-top:0.5rem;">${textoEstoqueResumo}</p>
+      <h2>Quantos cookies prontos?</h2>
+      <div style="${grande}">${totalAssados} assados</div>
+      <div style="${nota}">prontos para vender. ${totalCongelados} congelados esperando forno.${algumEstoqueCadastrado ? ` Com o estoque de hoje dá para moldar até ${totalDaPraFazer} a mais.` : ""}</div>
+      ${verTudo("cookies", "Ver por sabor")}
     </div>
     <div class="recipe">
-      <h2>O que fazer</h2>
-      ${acoes.length ? `<ul style="margin:0.4rem 0 0; padding-left:1.2rem; font-size:0.9rem;">${acoes.map(a=>`<li style="margin-bottom:0.3rem;">${a}</li>`).join("")}</ul>` : `<p style="font-size:0.9rem; opacity:0.7;">Nada pendente por aqui agora.</p>`}
+      <h2>Estou tendo lucro de verdade?</h2>
+      <div style="${grande} color:${corLucro};">${brl(lucroRealMes)}</div>
+      <div style="${nota}">até agora neste mês, já descontando custo do que vendeu, queimados e as contas fixas do mês inteiro.</div>
+      ${vendasSemCusto ? `<p style="font-size:0.82rem; color:var(--wine); margin-top:0.4rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente: registre a compra na aba Comprar). O lucro pode estar maior do que o real.</p>` : ""}
+      <details style="margin-top:0.5rem;">
+        <summary style="cursor:pointer; font-size:0.85rem;">Como chegou nesse número</summary>
+        <div class="summary" style="margin-top:0.5rem;">
+          <div><span class="label">Vendidos</span><span class="value">${vendidosMes} cookies</span></div>
+          <div><span class="label">Receita</span><span class="value">${brl(receitaMes)}</span></div>
+          <div><span class="label">Ingredientes dos vendidos</span><span class="value">${brl(custoIngVendidosMes)}</span></div>
+          <div><span class="label">Embalagens</span><span class="value">${brl(custoEmbMes)}</span></div>
+          <div><span class="label">Queimados</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">${brl(custoDesperdicioMes)}</span></div>
+          <div><span class="label">Contas fixas do mês</span><span class="value">${brl(totalFixo)}</span></div>
+        </div>
+        ${vendasEstimadas ? `<p style="font-size:0.8rem; opacity:0.7; margin-top:0.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
+      </details>
+      ${verTudo("preco", "Ver preço e margem")}
     </div>
+    ${acoes.length ? `<div class="recipe">
+      <h2>Atenção</h2>
+      <ul style="margin:0.4rem 0 0; padding-left:1.2rem; font-size:0.9rem;">${acoes.map(a=>`<li style="margin-bottom:0.3rem;">${a}</li>`).join("")}</ul>
+    </div>` : ""}
   `;
 
   document.getElementById("atalho-fornada").addEventListener("click", ()=> irPara("producao"));
@@ -3146,7 +3142,7 @@ const GRUPOS = {
   produzir: [["cookies","Moldar cookies"],["producao","Assar"]],
   vender:   [["vendas","Vendas"]],
   dinheiro: [["caixa","Caixa"],["contas","Contas"]],
-  gestao:   [["receitas","Receitas"],["custo","Custo/cookie"],["financeiro","Financeiro"],["config","Config"]]
+  gestao:   [["receitas","Receitas"],["preco","Preço e lucro"],["config","Config"]]
 };
 let abaAtual = "painel";
 const ultimaTelaDoGrupo = {};
@@ -3155,6 +3151,7 @@ function grupoDaTela(view){
   return "hoje";
 }
 function irPara(view){
+  if (view === "custo" || view === "financeiro") view = "preco"; // atalhos antigos
   if (!document.getElementById(`view-${view}`)) view = "painel";
   abaAtual = view;
   const grupo = grupoDaTela(view);
@@ -3179,8 +3176,7 @@ function irPara(view){
   if (view === "vendas") renderVendas();
   if (view === "caixa") renderCaixa();
   if (view === "contas") renderContas();
-  if (view === "custo") renderCusto();
-  if (view === "financeiro") renderFinanceiro();
+  if (view === "preco") renderPreco();
   if (view === "config") renderConfig();
 }
 document.querySelectorAll("nav.tabs button[data-grupo]").forEach(btn=>{
