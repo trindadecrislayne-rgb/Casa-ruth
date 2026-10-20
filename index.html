@@ -223,13 +223,29 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
   border-radius:12px;
 }
 /* ---- Contas do mês ---- */
-.contas-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 235px), 1fr)); gap:0.7rem;}
+.contas-grid{display:flex; flex-direction:column; gap:0;}
 .conta-card{
-  display:flex; flex-direction:column; gap:0.5rem; min-width:0; padding:0.8rem 0.95rem; border-radius:16px;
-  border:1px solid rgba(176,141,87,.4);
-  background:color-mix(in srgb, var(--cream-2) 55%, var(--card));
-  box-shadow:0 1px 2px rgba(78,20,32,.05), 0 10px 20px -14px rgba(78,20,32,.25);
+  display:flex; flex-direction:column; gap:0.5rem; min-width:0; padding:0.85rem 0.1rem;
+  border-bottom:1px solid rgba(176,141,87,.32);
 }
+.conta-card:last-child{border-bottom:none;}
+.conta-esq{display:flex; flex-direction:column; gap:0.3rem; min-width:0; flex:1;}
+.conta-sub{display:flex; align-items:center; flex-wrap:wrap; gap:0.3rem 0.6rem; font-size:0.82rem; opacity:0.9;}
+.conta-valor-box{display:flex; align-items:center; gap:0.25rem; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.conta-valor-box .cfg-mini{width:92px; font-size:1.05rem; font-weight:700;}
+/* Movimentos do Caixa: lista de extrato, nome à esquerda e valor no canto oposto */
+.mov-lista{display:flex; flex-direction:column; margin-top:0.4rem;}
+.mov-row{display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; padding:0.75rem 0.1rem; border-bottom:1px solid rgba(176,141,87,.32);}
+.mov-row:last-child{border-bottom:none;}
+.mov-esq{min-width:0; flex:1;}
+.mov-desc{font-weight:600; font-size:0.98rem; line-height:1.3; overflow-wrap:anywhere;}
+.mov-sub{font-size:0.78rem; opacity:0.7; margin-top:0.15rem;}
+.mov-dir{display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem; flex-shrink:0;}
+.mov-valor{font-family:'Playfair Display',serif; font-weight:700; font-size:1.08rem; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.mov-valor.entrada{color:#3F7D4F;}
+.mov-valor.saida{color:var(--wine);}
+.mov-ex{border:none; background:none; padding:0; font-family:inherit; font-size:0.74rem; color:var(--wine); opacity:0.7; text-decoration:underline; cursor:pointer;}
+.mov-vazio{opacity:0.6; font-size:0.9rem; padding:0.6rem 0;}
 .conta-card.paga{opacity:0.75;}
 .conta-topo{display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;}
 .conta-nome{font-family:'Playfair Display',serif; font-weight:700; color:var(--wine); font-size:1rem;}
@@ -1965,14 +1981,20 @@ function renderCaixa(){
     contasDoMes(m).filter(c=>!c.pago).forEach(c=> contasAbertas.push({ mes:m, c }));
   });
 
-  const historico = historicoCaixa.slice().reverse().slice(0,20).map(l=>`
-    <tr>
-      <td>${l.data}</td>
-      <td>${l.tipo==="entrada" ? (CATEGORIAS_ENTRADA[l.categoria]||l.categoria) : (CATEGORIAS_SAIDA[l.categoria]||l.categoria)}</td>
-      <td style="opacity:0.75; font-size:0.85rem;">${esc(l.descricao||"")}</td>
-      <td class="price" style="color:${l.tipo==='entrada'?'#3F7D4F':'var(--wine)'};">${l.tipo==='entrada'?'+':'-'} R$ ${l.valor.toFixed(2)}</td>
-      <td style="text-align:right;"><button class="rm-caixa" data-id="${l.id}" style="border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;">excluir</button></td>
-    </tr>`).join("");
+  const historico = historicoCaixa.slice().reverse().slice(0,20).map(l=>{
+    const cat = l.tipo==="entrada" ? (CATEGORIAS_ENTRADA[l.categoria]||l.categoria) : (CATEGORIAS_SAIDA[l.categoria]||l.categoria);
+    const desc = (l.descricao || "").trim();
+    return `<div class="mov-row">
+      <div class="mov-esq">
+        <div class="mov-desc">${esc(desc || cat)}</div>
+        <div class="mov-sub">${l.data}${desc ? " · " + esc(cat) : ""}</div>
+      </div>
+      <div class="mov-dir">
+        <div class="mov-valor ${l.tipo==="entrada" ? "entrada" : "saida"}">${l.tipo==="entrada" ? "+" : "−"} ${brl(l.valor)}</div>
+        <button class="rm-caixa mov-ex" data-id="${l.id}" type="button">excluir</button>
+      </div>
+    </div>`;
+  }).join("");
 
   el.innerHTML = `
     ${saldo < 0 ? `<div class="recipe" style="display:flex; align-items:center; gap:0.7rem; border-color:var(--wine);">
@@ -2012,8 +2034,7 @@ function renderCaixa(){
     </div>
     <div class="recipe">
       <h2>Últimos movimentos</h2>
-      <table><thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th class="price">Valor</th><th></th></tr></thead>
-      <tbody>${historico || `<tr><td colspan="5" style="opacity:0.6;">Nenhum movimento registrado ainda</td></tr>`}</tbody></table>
+      <div class="mov-lista">${historico || `<div class="mov-vazio">Nenhum movimento registrado ainda</div>`}</div>
     </div>
   `;
 
@@ -2737,14 +2758,20 @@ function renderContas(){
     const valorTxt = c.pago ? valorPagoConta(c).toFixed(2) : String(c.valor);
     return `
     <div class="conta-card ${c.pago ? "paga" : ""}" data-chave="${esc(c.chave)}">
-      <div class="conta-topo"><span class="conta-nome">${esc(c.nome)}</span><span class="selo selo-${st.tipo}">${esc(st.txt)}</span></div>
-      <div class="conta-linha"><label>Valor</label><span>R$ <input class="cfg-mini conta-valor" type="number" step="0.01" inputmode="decimal" value="${valorTxt}" ${c.pago ? "disabled" : ""}></span></div>
-      <div class="conta-linha"><label>Vence dia</label><input class="cfg-mini conta-dia" type="number" min="1" max="31" inputmode="numeric" placeholder="—" value="${esc(String(c.dia))}" ${c.pago ? "disabled" : ""}></div>
+      <div class="conta-topo">
+        <div class="conta-esq">
+          <span class="conta-nome">${esc(c.nome)}</span>
+          <span class="conta-sub"><span class="selo selo-${st.tipo}">${esc(st.txt)}</span><span>vence dia <input class="cfg-mini conta-dia" style="width:48px;" type="number" min="1" max="31" inputmode="numeric" placeholder="—" value="${esc(String(c.dia))}" ${c.pago ? "disabled" : ""}></span></span>
+        </div>
+        <div class="conta-valor-box">R$ <input class="cfg-mini conta-valor" type="number" step="0.01" inputmode="decimal" value="${valorTxt}" ${c.pago ? "disabled" : ""}></div>
+      </div>
       ${c.pago ? `
         <div class="conta-linha"><span style="font-size:0.8rem; opacity:0.8;">Paga em ${isoParaBR(c.pago.dataISO)} · ${c.pago.caixaId ? "saiu do Caixa" : "fora do Caixa"}</span><button class="btn-sec conta-desfazer" type="button">Desfazer</button></div>
       ` : `
-        <label class="conta-caixa-op"><input type="checkbox" class="conta-caixa" checked> Descontar do Caixa</label>
-        <div class="conta-acoes"><button class="btn-pri conta-pagar" type="button">Marcar como paga</button>${c.avulsa ? `<button class="btn-sec conta-remover" type="button">Remover</button>` : ""}</div>
+        <div class="conta-linha">
+          <label class="conta-caixa-op"><input type="checkbox" class="conta-caixa" checked> Descontar do Caixa</label>
+          <div class="conta-acoes"><button class="btn-pri conta-pagar" type="button">Marcar como paga</button>${c.avulsa ? `<button class="btn-sec conta-remover" type="button">Remover</button>` : ""}</div>
+        </div>
       `}
     </div>`;
   }).join("");
