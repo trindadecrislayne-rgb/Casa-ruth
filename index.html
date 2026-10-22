@@ -6,27 +6,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Casa Ruth — Receitas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;900&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
 <style>
+/* ==========================================================================
+MODELO DE LAYOUT (nº 1)  — fonte da verdade do visual. Mudar o visual = mudar o :root abaixo.
+- Intenção: painel quente e limpo, café com leite e caramelo, cartões brancos bem arredondados, números grandes, verde-sálvia para o que é bom. Calmo, fácil de ler de relance.
+- Cores: fundo #F6EFE6 · cartão #FFFDF9 · texto #3A2316 · destaque marrom #7A4A2B (escuro #4A2A1A) · caramelo/linhas #B9835A · positivo sálvia #5F7F4F · negativo terracota #B5523B.
+- Tipografia: títulos Playfair Display (itálico só no nome do app); texto e números Inter. Título de tela 1.4rem, número grande 1.6rem peso 700, texto 0.95rem, legenda 0.7rem em maiúsculas. Números sempre alinhados (tabular).
+- Formas: cartão arredondado 18px, itens de lista 14px, botões e etiquetas em pílula (999px), borda fina caramelo 1px com 35% de força, sombra bem suave, espaços de 8/12/16/24px.
+- Menu: dock flutuante já existente (pode ser movido pelo usuário); no futuro, menu lateral marrom escuro em tela larga. Ícones de linha SVG, sem emojis.
+- Componentes: cartão branco com número grande e legenda pequena em cima; botão principal marrom cheio, secundário só com borda; listas limpas com linha fina; avisos com borda tracejada caramelo; setinha verde/terracota para variação.
+- Tela por tela: Painel = fileira de cartões de números (Receita, Custos, Lucro, Margem) + 1 gráfico + 1 lista (mais vendidos) + resumo de estoque, sem rolar muito. Demais telas: só trocar para cartões e cores, sem mudar a função.
+- Evitar: cores neon, emojis, sombras pesadas, bordas grossas, a mesma informação em mais de um lugar, tabelas com muitas colunas no celular.
+- Status: APLICADO = cores, fontes, arredondamento e sombras em todo o app (só visual). FALTA = Painel em cartões de números, gráficos, menu lateral em tela larga, revisar tela por tela.
+========================================================================== */
 :root{
-  --cream:#F6EEDD; --cream-2:#EFE3C9; --ink:#2B1B14;
-  --wine:#7A1F2B; --wine-deep:#4E1420; --gold:#B08D57; --gold-soft:#F1E6CC;
-  --card:#FFFBF2;
-  --shadow:0 1px 2px rgba(78,20,32,.05), 0 20px 40px -18px rgba(78,20,32,.22);
-  --radius:22px;
+  --cream:#F6EFE6; --cream-2:#EDE2D3; --ink:#3A2316;
+  --wine:#7A4A2B; --wine-deep:#4A2A1A; --gold:#B9835A; --gold-soft:#F0E3D2;
+  --card:#FFFDF9;
+  --pos:#5F7F4F; --neg:#B5523B; --sage:#9DAE8C; --sage-soft:#E6EBDD;
+  --font-texto:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-titulo:'Playfair Display', Georgia, serif;
+  --shadow:0 1px 2px rgba(74,38,22,.05), 0 16px 32px -20px rgba(74,38,22,.22);
+  --radius:18px; --radius-item:14px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --cream:#1C120D; --cream-2:#241811; --ink:#F3E9D2; --card:#2A1C14; --wine:#E28A96; --wine-deep:#E28A96;
+    --cream:#1E1510; --cream-2:#271B14; --ink:#F3E8DA; --card:#2B1E16; --wine:#E0A37A; --wine-deep:#E0A37A; --pos:#8FB07C; --neg:#E58B73;
   }
 }
 :root[data-theme="dark"]{
-  --cream:#1C120D; --cream-2:#241811; --ink:#F3E9D2; --card:#2A1C14; --wine:#E28A96; --wine-deep:#E28A96;
+  --cream:#1E1510; --cream-2:#271B14; --ink:#F3E8DA; --card:#2B1E16; --wine:#E0A37A; --wine-deep:#E0A37A; --pos:#8FB07C; --neg:#E58B73;
 }
 *{box-sizing:border-box;}
 body{
   margin:0; background:var(--cream); color:var(--ink); position:relative;
-  font-family:'Source Serif 4', serif;
+  font-family:var(--font-texto);
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 /* fundo decorativo: cookies desenhados, fixos embaixo, esmaecendo para cima */
@@ -44,7 +59,7 @@ body::after{
 header, main, nav.tabs, footer{position:relative; z-index:1;}
 header{
   text-align:center; max-width:620px; margin:14px auto 0; padding:14px 18px;
-  border-radius:999px; border:1px solid rgba(176,141,87,.5);
+  border-radius:999px; border:1px solid rgba(185,131,90,.5);
   background:color-mix(in srgb, var(--card) 80%, transparent);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   box-shadow:var(--shadow);
@@ -67,7 +82,7 @@ h1{
 main{max-width:720px; margin:0 auto; padding:1.3rem 1rem 3rem;}
 .recipe{
   background:color-mix(in srgb, var(--card) 96%, transparent); border-radius:var(--radius); padding:1.5rem 1.5rem 1.7rem;
-  margin-bottom:1.1rem; border:1px solid rgba(176,141,87,.45); box-shadow:var(--shadow);
+  margin-bottom:1.1rem; border:1px solid rgba(185,131,90,.45); box-shadow:var(--shadow);
 }
 .recipe h2{
   font-family:'Playfair Display',serif; font-weight:700; margin:0 0 0.2rem; font-size:1.4rem; color:var(--wine);
@@ -82,10 +97,10 @@ table tbody{
 }
 table tr{
   display:flex; flex-direction:column; gap:0.45rem; min-width:0;
-  padding:0.8rem 0.95rem; border-radius:16px;
-  border:1px solid rgba(176,141,87,.4);
+  padding:0.8rem 0.95rem; border-radius:var(--radius-item);
+  border:1px solid rgba(185,131,90,.4);
   background:color-mix(in srgb, var(--cream-2) 55%, var(--card));
-  box-shadow:0 1px 2px rgba(78,20,32,.05), 0 10px 20px -14px rgba(78,20,32,.25);
+  box-shadow:0 1px 2px rgba(74,38,22,.05), 0 10px 20px -14px rgba(74,38,22,.25);
 }
 table td{
   display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.2rem 0.6rem;
@@ -113,9 +128,9 @@ table.tabela-real{display:table; border-collapse:collapse;}
 table.tabela-real thead{display:table-header-group;}
 table.tabela-real tbody{display:table-row-group;}
 table.tabela-real tr{display:table-row; padding:0; border:none; border-radius:0; background:none; box-shadow:none;}
-table.tabela-real th{padding:0.3rem 0.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); text-align:left; border-bottom:1px solid rgba(176,141,87,.5);}
+table.tabela-real th{padding:0.3rem 0.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); text-align:left; border-bottom:1px solid rgba(185,131,90,.5);}
 table.tabela-real th.qty, table.tabela-real th.price{text-align:right;}
-table.tabela-real td{display:table-cell; padding:0.5rem 0.4rem; text-align:right; vertical-align:middle; font-size:0.88rem; border-bottom:1px solid rgba(176,141,87,.25);}
+table.tabela-real td{display:table-cell; padding:0.5rem 0.4rem; text-align:right; vertical-align:middle; font-size:0.88rem; border-bottom:1px solid rgba(185,131,90,.25);}
 table.tabela-real td:first-child{text-align:left; font-family:inherit; font-weight:600; font-size:0.9rem; color:var(--ink);}
 table.tabela-real td[data-label]::before{content:none;}
 table.tabela-real tr:last-child td{border-bottom:none;}
@@ -148,7 +163,7 @@ nav.tabs{
   display:flex; gap:0.2rem;
   background:color-mix(in srgb, var(--card) 94%, transparent);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  border:1px solid rgba(176,141,87,.5); box-shadow:var(--shadow);
+  border:1px solid rgba(185,131,90,.5); box-shadow:var(--shadow);
   border-radius:20px; padding:0.4rem; overflow:auto; max-height:80vh;
   transition:all .2s ease;
 }
@@ -176,7 +191,7 @@ nav.tabs button .icon{font-size:1.15rem; line-height:1;}
 nav.tabs button .icon svg, #sidebar-handle svg, #sidebar-toggle svg{display:block;}
 #sidebar-handle, #sidebar-toggle{display:flex; align-items:center; justify-content:center;}
 nav.tabs button .label{font-size:0.64rem; line-height:1.05;}
-nav.tabs button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream); box-shadow:0 4px 12px -4px rgba(78,20,32,.6);}
+nav.tabs button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream); box-shadow:0 4px 12px -4px rgba(74,38,22,.6);}
 
 /* em cima/embaixo: ícone em cima, nome embaixo */
 nav.tabs.pos-bottom button, nav.tabs.pos-top button{flex-direction:column; align-items:center; gap:0.12rem; padding:0.4rem 0.35rem; min-width:46px;}
@@ -194,7 +209,7 @@ nav.tabs.free{
   right:auto !important; bottom:auto !important; transform:none !important;
 }
 nav.tabs.free{width:max-content;}
-nav.tabs.dragging{transition:none !important; cursor:grabbing; box-shadow:0 18px 40px -10px rgba(78,20,32,.45);}
+nav.tabs.dragging{transition:none !important; cursor:grabbing; box-shadow:0 18px 40px -10px rgba(74,38,22,.45);}
 nav.tabs.dragging #sidebar-handle{cursor:grabbing;}
 #sidebar-toggle{
   font-family:inherit; border:none; background:transparent; color:var(--wine);
@@ -220,7 +235,7 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .contas-grid{display:flex; flex-direction:column; gap:0;}
 .conta-card{
   display:flex; flex-direction:column; gap:0.5rem; min-width:0; padding:0.85rem 0.1rem;
-  border-bottom:1px solid rgba(176,141,87,.32);
+  border-bottom:1px solid rgba(185,131,90,.32);
 }
 .conta-card:last-child{border-bottom:none;}
 .conta-esq{display:flex; flex-direction:column; gap:0.3rem; min-width:0; flex:1;}
@@ -229,14 +244,14 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .conta-valor-box .cfg-mini{width:92px; font-size:1.05rem; font-weight:700;}
 /* Movimentos do Caixa: lista de extrato, nome à esquerda e valor no canto oposto */
 .mov-lista{display:flex; flex-direction:column; margin-top:0.4rem;}
-.mov-row{display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; padding:0.75rem 0.1rem; border-bottom:1px solid rgba(176,141,87,.32);}
+.mov-row{display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; padding:0.75rem 0.1rem; border-bottom:1px solid rgba(185,131,90,.32);}
 .mov-row:last-child{border-bottom:none;}
 .mov-esq{min-width:0; flex:1;}
 .mov-desc{font-weight:600; font-size:0.98rem; line-height:1.3; overflow-wrap:anywhere;}
 .mov-sub{font-size:0.78rem; opacity:0.7; margin-top:0.15rem;}
 .mov-dir{display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem; flex-shrink:0;}
 .mov-valor{font-family:'Playfair Display',serif; font-weight:700; font-size:1.08rem; font-variant-numeric:tabular-nums; white-space:nowrap;}
-.mov-valor.entrada{color:#3F7D4F;}
+.mov-valor.entrada{color:#5F7F4F;}
 .mov-valor.saida{color:var(--wine);}
 .mov-ex{border:none; background:none; padding:0; font-family:inherit; font-size:0.74rem; color:var(--wine); opacity:0.7; text-decoration:underline; cursor:pointer;}
 .mov-vazio{opacity:0.6; font-size:0.9rem; padding:0.6rem 0;}
@@ -256,7 +271,7 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .conta-topo{display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;}
 .conta-nome{font-family:'Playfair Display',serif; font-weight:700; color:var(--wine); font-size:1rem;}
 .selo{font-size:0.62rem; letter-spacing:0.04em; text-transform:uppercase; font-weight:700; padding:0.18rem 0.5rem; border-radius:999px; white-space:nowrap;}
-.selo-ok{background:#3F7D4F; color:#fff;}
+.selo-ok{background:#5F7F4F; color:#fff;}
 .selo-pend{border:1px solid var(--gold); color:var(--gold);}
 .selo-hoje{background:var(--gold); color:#2B1B14;}
 .selo-atraso{background:var(--wine); color:var(--cream);}
@@ -272,8 +287,8 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .btn-pri, .btn-sec{border-radius:999px; padding:0.45rem 0.9rem; cursor:pointer; font-family:inherit; font-size:0.85rem;}
 .btn-pri{border:1px solid var(--wine); background:var(--wine); color:var(--cream);}
 .btn-sec{border:1px solid var(--wine); background:transparent; color:var(--wine);}
-.barra{height:8px; border-radius:999px; background:rgba(176,141,87,.25); overflow:hidden; margin-top:0.7rem;}
-.barra > i{display:block; height:100%; background:#3F7D4F; transition:width .3s ease;}
+.barra{height:8px; border-radius:999px; background:rgba(185,131,90,.25); overflow:hidden; margin-top:0.7rem;}
+.barra > i{display:block; height:100%; background:#5F7F4F; transition:width .3s ease;}
 .mes-nav{display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-bottom:0.9rem;}
 .mes-nav .titulo{font-family:'Playfair Display',serif; font-weight:700; font-size:1.15rem; color:var(--wine); text-transform:capitalize; text-align:center; flex:1;}
 .campo-contas{padding:0.5rem 0.6rem; border-radius:12px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;}
@@ -303,12 +318,17 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
 #auth-msg{margin-top:.9rem;font-size:.88rem;min-height:1.2em;text-align:center;}
 #auth-msg.erro{color:var(--wine);font-weight:600;}
 #sync-status{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;z-index:60;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--gold);background:var(--card);color:var(--ink);font:inherit;font-size:.78rem;cursor:default;box-shadow:var(--shadow);}
-#sync-status.ok .ico{color:#3a8f4d;font-weight:700;}
+#sync-status.ok .ico{color:#5F7F4F;font-weight:700;}
 @keyframes giro{to{transform:rotate(360deg)}}
 #sync-status .giro{display:inline-block;animation:giro 1s linear infinite;}
 @media (prefers-reduced-motion:reduce){#sync-status .giro{animation:none}}
 #sync-status.erro{border-color:var(--wine);color:var(--wine);font-weight:700;cursor:pointer;}
 #btn-sair{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:60;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--gold);background:var(--card);color:var(--ink);font:inherit;font-size:.82rem;cursor:pointer;box-shadow:var(--shadow);}
+/* ---- Ajustes do MODELO DE LAYOUT (nº 1) ---- */
+body{font-size:0.95rem; line-height:1.45;}
+.mov-valor, .summary .value, .conta-valor-box{font-variant-numeric:tabular-nums;}
+.mov-valor.saida{color:var(--neg);}
+.recipe h2, .conta-nome, .mes-nav .titulo{font-family:var(--font-titulo);}
 </style>
 </head>
 <body>
@@ -630,7 +650,7 @@ function renderStock(){
         </tr>`).join("")}
       </tbody></table>
 
-      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(176,141,87,0.3); display:flex; gap:0.5rem;">
+      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(185,131,90,0.3); display:flex; gap:0.5rem;">
         <input id="novo-extra" type="text" placeholder="novo item de embalagem" style="flex:1; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
         <button id="add-extra" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.4rem 0.9rem; cursor:pointer;">Adicionar</button>
       </div>
@@ -753,7 +773,7 @@ function mostrarNota(itens, nomes, status, out){
   status.textContent = "Confira os itens abaixo. Ajuste o que estiver errado e aplique.";
   out.innerHTML = itens.map((it,i)=>{
     const sel = nomes.includes(it.ingrediente) ? it.ingrediente : "";
-    return `<div class="nota-item" style="border-top:1px solid rgba(176,141,87,0.3); padding:0.6rem 0;">
+    return `<div class="nota-item" style="border-top:1px solid rgba(185,131,90,0.3); padding:0.6rem 0;">
       <div style="font-size:0.85rem; opacity:0.75; margin-bottom:0.3rem;">${esc(it.descricao)}</div>
       <select class="nota-sel" style="width:100%; padding:0.4rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
         <option value="">— ignorar este item —</option>
@@ -840,7 +860,7 @@ function renderRendimentos(){
     else if (estoqueVazio) nota = `<div class="gargalo">estoque ainda não cadastrado</div>`;
     else if (minCookies < RENDIMENTO_FORNADA) nota = `<div class="gargalo">falta ingrediente: ${gargalo}</div>`;
 
-    return `<div class="summary" style="border-top:1px solid rgba(176,141,87,0.3); padding:0.6rem 0;">
+    return `<div class="summary" style="border-top:1px solid rgba(185,131,90,0.3); padding:0.6rem 0;">
       <div style="min-width:140px;"><span class="label">${s.nome}</span><span class="value">${receitaIncompleta ? "—" : minCookies+" cookies"}</span></div>
       ${nota}
     </div>`;
@@ -1041,7 +1061,7 @@ function renderConfig(){
         </tr>`).join("") || `<tr><td colspan="2" style="opacity:0.6;">Nenhum combo cadastrado ainda</td></tr>`}
       </tbody></table>
 
-      <div style="margin-top:0.8rem; padding-top:0.6rem; border-top:1px solid rgba(176,141,87,0.3);">
+      <div style="margin-top:0.8rem; padding-top:0.6rem; border-top:1px solid rgba(185,131,90,0.3);">
         <div class="sub" style="margin-bottom:0.4rem;">Novo combo</div>
         <div style="display:flex; flex-direction:column; gap:0.5rem;">
           <input id="novo-combo-nome" type="text" placeholder="nome do combo" value="${esc(comboEmEdicaoNome)}" style="padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
@@ -1275,7 +1295,7 @@ function renderPreco(){
   const vol = base.valor || meta || null;
   const origemVol = base.valor ? base.origem : "meta do mês";
   const fixoPorCookie = vol ? fixo / vol : null;
-  const verde = "color:#3F7D4F;", vinho = "color:var(--wine);";
+  const verde = "color:#5F7F4F;", vinho = "color:var(--wine);";
 
   // uma linha de contas por sabor
   const lin = sabores.map(s=>{
@@ -1525,8 +1545,8 @@ function renderCookies(){
       ${tabelaSaldos()}
     </div>
     <div class="recipe">
-      <h2>Acertar saldos</h2>
-      <div class="sub">Use para começar ou quando contar o que tem de verdade. Não mexe nos ingredientes.</div>
+      <h2>Saldo inicial de cookies</h2>
+      <div class="sub">Digite quantos cookies você já tem de cada sabor, congelados e assados, ao começar ou quando contar o que tem de verdade. Não mexe nos ingredientes nem no Caixa.</div>
       <table><thead><tr><th>Sabor</th><th class="qty">Congelados</th><th class="qty">Assados</th></tr></thead><tbody>${linhasAjuste}</tbody></table>
       <button id="saldo-salvar" style="${CK_BTN} margin-top:0.6rem;">Salvar saldos</button>
       <div id="saldo-msg" style="font-size:0.85rem; margin-top:0.4rem;"></div>
@@ -1983,7 +2003,7 @@ let historicoCaixa = loadCaixa();
 // entradas do Caixa que nasceram de uma venda (só as feitas a partir desta versão têm o vínculo)
 function caixaDaVenda(vendaId){ return historicoCaixa.filter(l=>l.vendaId === vendaId); }
 
-const CATEGORIAS_ENTRADA = {venda:"Venda de cookies", aporte:"Aporte/empréstimo dos sócios", outro:"Outra entrada"};
+const CATEGORIAS_ENTRADA = {venda:"Venda de cookies", saldoinicial:"Saldo inicial (não é venda)", aporte:"Aporte/empréstimo dos sócios", outro:"Outra entrada"};
 const CATEGORIAS_SAIDA = {compra:"Compra de ingrediente/embalagem", conta:"Conta fixa (aluguel, salário...)", devolucao:"Devolução de aporte aos sócios", outro:"Outra saída"};
 
 function saldoCaixa(){
@@ -2161,7 +2181,7 @@ function renderCaixa(){
       <h2>Registrar movimento</h2>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
         <div style="display:flex; gap:0.6rem;">
-          <button class="caixa-tipo-btn active" data-tipo="entrada" style="flex:1; border:1px solid #3F7D4F; background:#3F7D4F; color:#fff; border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Entrada</button>
+          <button class="caixa-tipo-btn active" data-tipo="entrada" style="flex:1; border:1px solid #5F7F4F; background:#5F7F4F; color:#fff; border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Entrada</button>
           <button class="caixa-tipo-btn" data-tipo="saida" style="flex:1; border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Saída</button>
         </div>
         <select id="caixa-categoria" style="padding:0.5rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
@@ -2200,8 +2220,8 @@ function renderCaixa(){
       tipoAtual = btn.dataset.tipo;
       el.querySelectorAll(".caixa-tipo-btn").forEach(b=>{
         const ativo = b===btn;
-        b.style.background = ativo ? (tipoAtual==="entrada" ? "#3F7D4F" : "var(--wine)") : "transparent";
-        b.style.color = ativo ? "#fff" : (b.dataset.tipo==="entrada" ? "#3F7D4F" : "var(--wine)");
+        b.style.background = ativo ? (tipoAtual==="entrada" ? "#5F7F4F" : "var(--wine)") : "transparent";
+        b.style.color = ativo ? "#fff" : (b.dataset.tipo==="entrada" ? "#5F7F4F" : "var(--wine)");
       });
       const cats = tipoAtual==="entrada" ? CATEGORIAS_ENTRADA : CATEGORIAS_SAIDA;
       selectCat.innerHTML = Object.entries(cats).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
@@ -2526,7 +2546,7 @@ function renderComprar(aviso){
   const ultimas = historicoCompras.slice().reverse().slice(0, 12);
 
   el.innerHTML = `
-    ${aviso ? `<div class="recipe" style="border-color:#3F7D4F;"><div style="font-size:0.92rem; line-height:1.4;">${aviso}</div></div>` : ""}
+    ${aviso ? `<div class="recipe" style="border-color:#5F7F4F;"><div style="font-size:0.92rem; line-height:1.4;">${aviso}</div></div>` : ""}
     <div class="recipe">
       <h2>Registrar compra</h2>
       <div class="sub">O app soma no estoque, refaz o custo médio e lança a saída no Caixa.</div>
@@ -3088,6 +3108,20 @@ function renderContas(){
 }
 
 // ---- Painel ----
+// Dados parciais: primeiro dia do mês que já tem registro (vendas, fornadas, moldagens, compras, Caixa sem contas fixas)
+function primeiroDiaRegistrado(mes){
+  const datas = [];
+  const add = d=>{ if (d && String(d).slice(0,7)===mes) datas.push(String(d).slice(0,10)); };
+  historicoVendas.forEach(v=> add(v.dataISO));
+  historicoProducao.forEach(f=> add(f.dataISO || (f.data ? f.data.split("/").reverse().join("-") : "")));
+  historicoMoldados.forEach(m=> add(m.dataISO));
+  historicoCompras.forEach(c=> add(c.dataISO));
+  historicoCaixa.forEach(l=>{ if (l.categoria !== "conta") add(l.dataISO); });
+  if (!datas.length) return null;
+  datas.sort();
+  return parseInt(datas[0].slice(8,10), 10);
+}
+
 function renderPainel(){
   const el = document.getElementById("painel");
   const nomesSabor = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
@@ -3134,7 +3168,14 @@ function renderPainel(){
   }).filter(m=>m!==null);
   const margemMedia = margens.length ? margens.reduce((a,b)=>a+b,0)/margens.length : null;
   const pontoEquilibrio = margemMedia && margemMedia>0 ? Math.ceil(totalFixo/margemMedia) : null;
-  const lucroRealMes = receitaMes - custoIngVendidosMes - custoEmbMes - custoDesperdicioMes - totalFixo;   // receita - custo do que vendeu - queimados - contas fixas
+  // Mês parcial: se os registros começaram depois do dia 1, as contas fixas entram só pelos dias registrados
+  const diasNoMesP = new Date(parseInt(mAtual.slice(0,4),10), parseInt(mAtual.slice(5,7),10), 0).getDate();
+  const diaIni = primeiroDiaRegistrado(mAtual);
+  const diaHojeP = Math.min(parseInt(hojeISO().slice(8,10),10) || diasNoMesP, diasNoMesP);
+  const parcial = diaIni !== null && diaIni > 1 && diaIni <= diaHojeP;
+  const diasRegistrados = parcial ? (diaHojeP - diaIni + 1) : diasNoMesP;
+  const fixoMesUsado = parcial ? totalFixo * diasRegistrados / diasNoMesP : totalFixo;
+  const lucroRealMes = receitaMes - custoIngVendidosMes - custoEmbMes - custoDesperdicioMes - fixoMesUsado;   // receita - custo do que vendeu - queimados - contas fixas
 
   // Estoque: por sabor, quanto dá pra fazer + gargalo
   const dadosSabor = sabores.map(s=>{
@@ -3175,7 +3216,7 @@ function renderPainel(){
     const diaDoMes = new Date().getDate();
     const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
     const proporcaoEsperada = diaDoMes / diasNoMes;
-    if (proporcao >= 1) status = {cor:"#3F7D4F", texto:"Mês indo bem — meta batida"};
+    if (proporcao >= 1) status = {cor:"#5F7F4F", texto:"Mês indo bem — meta batida"};
     else if (proporcao >= proporcaoEsperada * 0.8) status = {cor:"#C79A2B", texto:"No ritmo, mas de olho"};
     else status = {cor:"var(--wine)", texto:"Abaixo do ritmo esperado pro mês"};
   }
@@ -3185,7 +3226,7 @@ function renderPainel(){
   const temContas = contasDoMes(mAtual).length > 0;
   const totalAssados = sabores.reduce((t,s)=> t + saldoDe("assados", s.id), 0);
   const totalCongelados = sabores.reduce((t,s)=> t + saldoDe("congelados", s.id), 0);
-  const corLucro = lucroRealMes < 0 ? "var(--wine)" : "#3F7D4F";
+  const corLucro = lucroRealMes < 0 ? "var(--wine)" : "#5F7F4F";
   const grande = "font-size:1.6rem; font-weight:700; line-height:1.2;";
   const nota = "font-size:0.85rem; opacity:0.8; margin-top:0.3rem; line-height:1.45;";
   const verTudo = (dest, txt)=> `<div style="margin-top:0.6rem;"><button class="btn-sec" type="button" onclick="irPara('${dest}')">${txt}</button></div>`;
@@ -3225,7 +3266,8 @@ function renderPainel(){
     <div class="recipe">
       <h2>Estou tendo lucro de verdade?</h2>
       <div style="${grande} color:${corLucro};">${brl(lucroRealMes)}</div>
-      <div style="${nota}">até agora neste mês, já descontando custo do que vendeu, queimados e as contas fixas do mês inteiro.</div>
+      <div style="${nota}">até agora neste mês, já descontando custo do que vendeu, queimados e ${parcial ? "as contas fixas só dos dias registrados" : "as contas fixas do mês inteiro"}.</div>
+      ${parcial ? `<p style="font-size:0.85rem; color:var(--wine); margin-top:0.4rem;"><strong>Dados parciais desde o dia ${diaIni}.</strong> São ${diasRegistrados} de ${diasNoMesP} dias do mês, então só ${brl(fixoMesUsado)} das contas fixas (de ${brl(totalFixo)}) entraram na conta.</p>` : ""}
       ${vendasSemCusto ? `<p style="font-size:0.82rem; color:var(--wine); margin-top:0.4rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente: registre a compra na aba Comprar). O lucro pode estar maior do que o real.</p>` : ""}
       <div style="margin-top:0.7rem;">
         <div style="font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); font-weight:700;">Como chegou nesse número</div>
@@ -3235,7 +3277,7 @@ function renderPainel(){
           <div><span class="label">Ingredientes dos vendidos</span><span class="value">${brl(custoIngVendidosMes)}</span></div>
           <div><span class="label">Embalagens</span><span class="value">${brl(custoEmbMes)}</span></div>
           <div><span class="label">Queimados</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">${brl(custoDesperdicioMes)}</span></div>
-          <div><span class="label">Contas fixas do mês</span><span class="value">${brl(totalFixo)}</span></div>
+          <div><span class="label">${parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês"}</span><span class="value">${brl(fixoMesUsado)}</span></div>
         </div>
         ${vendasEstimadas ? `<p style="font-size:0.8rem; opacity:0.7; margin-top:0.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
       </div>
