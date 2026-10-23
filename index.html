@@ -1268,6 +1268,19 @@ function loadFixosExtras(){ try{ return JSON.parse(localStorage.getItem(FIXOS_EX
 function saveFixosExtras(list){ try{ localStorage.setItem(FIXOS_EXTRAS_KEY, JSON.stringify(list)); }catch(e){} marcarAlterado(); }
 let custosFixosExtras = loadFixosExtras();
 
+function primeiroDiaRegistrado(mes){
+  const datas = [];
+  const add = d=>{ if (d && String(d).slice(0,7)===mes) datas.push(String(d).slice(0,10)); };
+  historicoVendas.forEach(v=> add(v.dataISO));
+  historicoProducao.forEach(f=> add(f.dataISO || (f.data ? f.data.split("/").reverse().join("-") : "")));
+  historicoMoldados.forEach(m=> add(m.dataISO));
+  historicoCompras.forEach(c=> add(c.dataISO));
+  historicoCaixa.forEach(l=>{ if (l.categoria !== "conta") add(l.dataISO); });
+  if (!datas.length) return null;
+  datas.sort();
+  return parseInt(datas[0].slice(8,10), 10);
+}
+
 function totalCustosFixos(){
   const base = ["salarioCris","aluguel","agua","internet"]
     .reduce((s,k)=> s + (parseFloat(custosFixos[k])||0), 0);
@@ -2394,7 +2407,7 @@ let historicoCaixa = loadCaixa();
 // entradas do Caixa que nasceram de uma venda (só as feitas a partir desta versão têm o vínculo)
 function caixaDaVenda(vendaId){ return historicoCaixa.filter(l=>l.vendaId === vendaId); }
 
-const CATEGORIAS_ENTRADA = {venda:"Venda de cookies", aporte:"Aporte/empréstimo dos sócios", outro:"Outra entrada"};
+const CATEGORIAS_ENTRADA = {venda:"Venda de cookies", saldoinicial:"Saldo inicial (não é venda)", aporte:"Aporte/empréstimo dos sócios", outro:"Outra entrada"};
 const CATEGORIAS_SAIDA = {compra:"Compra de ingrediente/embalagem", conta:"Conta fixa (aluguel, salário...)", devolucao:"Devolução de aporte aos sócios", outro:"Outra saída"};
 
 function saldoCaixa(){
@@ -3043,10 +3056,21 @@ function renderComprar(aviso){
       const info = infoItemCompra(nome);
       if (!info) return;
       const porKg = info.un === "g";
-      const txt = prompt(`Quanto está custando "${nome}" agora? Digite o preço por ${porKg ? "kg" : "unidade"} (ex.: 12,50).\nIsso corrige o custo médio; as próximas compras continuam a média a partir desse valor.`);
-      if (txt === null) return;
-      const v = lerValorDigitado(txt);
-      if (!(v > 0)){ alert("Digite um valor maior que zero, por exemplo 12,50."); return; }
+      const txtPago = prompt(`Quanto você pagou em "${nome}"? Digite o valor total em reais (ex.: 190).\nO app faz a divisão sozinho. Isso corrige o custo médio; as próximas compras continuam a média a partir dele.`);
+      if (txtPago === null) return;
+      const pago = lerValorDigitado(txtPago);
+      if (!(pago > 0)){ alert("Digite um valor maior que zero, por exemplo 190."); return; }
+      const txtQtd = prompt(porKg
+        ? `Quantos quilos esse valor comprou? (ex.: 3). Para gramas, escreva assim: 500 g.`
+        : `Quantas unidades esse valor comprou? (ex.: 30). Para dúzias, escreva assim: 2 dúzias.`);
+      if (txtQtd === null) return;
+      const qtdTxt = String(txtQtd).trim().toLowerCase();
+      let qtd = lerValorDigitado(qtdTxt.replace(/[^0-9.,]/g, ""));
+      if (!(qtd > 0)){ alert("Digite uma quantidade maior que zero, por exemplo 3."); return; }
+      if (porKg && /\d\s*g(ramas?)?\s*$/.test(qtdTxt)) qtd = qtd / 1000;
+      if (!porKg && /d[uú]zia/.test(qtdTxt)) qtd = qtd * 12;
+      const v = pago / qtd;
+      const qtdFmt = porKg ? (qtd >= 1 ? qtd.toLocaleString("pt-BR", {maximumFractionDigits:3}) + " kg" : Math.round(qtd*1000) + " g") : qtd.toLocaleString("pt-BR", {maximumFractionDigits:2}) + " un";
       if (info.tipo === "extra"){
         info.extra.precoUnitario = v.toFixed(4);
         saveExtras(itensExtras);
@@ -3054,7 +3078,7 @@ function renderComprar(aviso){
         precos[nome] = porKg ? { tam: "1000", preco: String(arred(v, 2)) } : { tam: "1", preco: String(arred(v, 4)) };
         savePrecos(precos);
       }
-      renderComprar(`Custo de <b>${esc(nome)}</b> corrigido para ${porKg ? brl(v) + "/kg" : brlUn(v) + "/un"}.`);
+      renderComprar(`Custo de <b>${esc(nome)}</b> corrigido para ${porKg ? brl(v) + "/kg" : brlUn(v) + "/un"} (${brl(pago)} por ${qtdFmt}).`);
     });
   });
   sel.addEventListener("change", trocouItem);
@@ -3612,7 +3636,15 @@ function renderPainel(){
   }).filter(m=>m!==null);
   const margemMedia = margens.length ? margens.reduce((a,b)=>a+b,0)/margens.length : null;
   const pontoEquilibrio = margemMedia && margemMedia>0 ? Math.ceil(totalFixo/margemMedia) : null;
-  const lucroRealMes = receitaMes - custoIngVendidosMes - custoEmbMes - custoDesperdicioMes - totalFixo;   // receita - custo do que vendeu - queimados - contas fixas
+  // Mês parcial: se os registros começaram depois do dia 1, as contas fixas entram só pelos dias registrados
+  const mAtualP = mesAtual();
+  const diasNoMesP = new Date(parseInt(mAtualP.slice(0,4),10), parseInt(mAtualP.slice(5,7),10), 0).getDate();
+  const diaIni = primeiroDiaRegistrado(mAtualP);
+  const diaHojeP = Math.min(parseInt(hojeISO().slice(8,10),10) || diasNoMesP, diasNoMesP);
+  const parcial = diaIni !== null && diaIni > 1 && diaIni <= diaHojeP;
+  const diasRegistrados = parcial ? (diaHojeP - diaIni + 1) : diasNoMesP;
+  const fixoMesUsado = parcial ? totalFixo * diasRegistrados / diasNoMesP : totalFixo;
+  const lucroRealMes = receitaMes - custoIngVendidosMes - custoEmbMes - custoDesperdicioMes - fixoMesUsado;   // receita - custo do que vendeu - queimados - contas fixas
 
   // Estoque: por sabor, quanto dá pra fazer + gargalo
   const dadosSabor = sabores.map(s=>{
@@ -3704,7 +3736,7 @@ function renderPainel(){
     {nome:"Ingredientes dos vendidos", valor:custoIngVendidosMes, cor:"var(--g1)"},
     {nome:"Embalagens", valor:custoEmbMes, cor:"var(--g2)"},
     {nome:"Queimados", valor:custoDesperdicioMes, cor:"var(--g3)"},
-    {nome:"Contas fixas do mês", valor:totalFixo, cor:"var(--g4)"}
+    {nome: parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês", valor:fixoMesUsado, cor:"var(--g4)"}
   ];
   const totalCustos = fatias.reduce((s,f)=> s + f.valor, 0);
   const dataBruta = new Date().toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
@@ -3777,8 +3809,9 @@ function renderPainel(){
         <div class="linha-val"><span>Ingredientes dos vendidos</span><b>− ${brl(custoIngVendidosMes)}</b></div>
         <div class="linha-val"><span>Embalagens</span><b>− ${brl(custoEmbMes)}</b></div>
         <div class="linha-val"><span>Queimados</span><b${custoDesperdicioMes > 0 ? ' class="neg"' : ""}>− ${brl(custoDesperdicioMes)}</b></div>
-        <div class="linha-val"><span>Contas fixas do mês inteiro</span><b>− ${brl(totalFixo)}</b></div>
+        <div class="linha-val"><span>${parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês inteiro"}</span><b>− ${brl(fixoMesUsado)}</b></div>
         <div class="linha-val total"><span>Lucro real até agora</span><b style="color:${corLucro === "var(--wine)" ? "var(--neg)" : "var(--ok)"};">${brl(lucroRealMes)}</b></div>
+        ${parcial ? `<p class="sub" style="margin-top:.6rem; color:var(--wine);"><strong>Dados parciais desde o dia ${diaIni}.</strong> São ${diasRegistrados} de ${diasNoMesP} dias do mês, então só ${brl(fixoMesUsado)} das contas fixas (de ${brl(totalFixo)}) entraram na conta.</p>` : ""}
         ${vendasSemCusto ? `<p class="sub neg" style="margin-top:.6rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente: registre a compra na aba Comprar). O lucro pode estar maior do que o real.</p>` : ""}
         ${vendasEstimadas ? `<p class="sub" style="margin-top:.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
         <div class="acoes"><button class="btn-sec" type="button" onclick="irPara('preco')">Ver preço e margem</button></div>
