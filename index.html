@@ -3071,9 +3071,9 @@ function textoQtdEmb(info, qtd, fOv){
   return fmtQtdCompra(info.un, qtd);
 }
 // O que a pessoa digitou da última vez (Corrigir) ou, se não houver, a última compra registrada
-function textoUltimoDigitado(nome){
+function textoUltimoDigitado(nome, partes){
   const info = infoItemCompra(nome);
-  if (!info) return "";
+  if (!info) return partes ? null : "";
   const d = precos[nome];
   let valor = null, qtd = null, txt = null;
   if (info.tipo === "ing" && d && d.ult && d.ult.valor > 0 && d.ult.qtd > 0){ valor = d.ult.valor; qtd = d.ult.qtd; txt = d.ult.txt || null; }
@@ -3086,13 +3086,14 @@ function textoUltimoDigitado(nome){
     const uc = info.tipo === "extra" ? info.extra.ultCorr : null;
     if (uc && uc.valor > 0 && uc.qtd > 0 && uc.t > tCompra){ valor = uc.valor; qtd = uc.qtd; txt = uc.txt || null; }
   }
-  if (valor === null) return "";
-  if (txt) return `${brl(valor)} por ${txt}`;
+  if (valor === null) return partes ? null : "";
+  const fim = qt => partes ? { valor, qt } : `${brl(valor)} por ${qt}`;
+  if (txt) return fim(txt);
   if (info.tipo === "ing" && info.un === "un" && !info.ing.nomeUn && !embDoItem(info.ing) && qtd >= 12 && qtd % 12 === 0){
     const dz = qtd / 12;
-    return `${brl(valor)} por ${fmtNum(dz)} ${dz === 1 ? "dúzia" : "dúzias"}`;
+    return fim(`${fmtNum(dz)} ${dz === 1 ? "dúzia" : "dúzias"}`);
   }
-  return `${brl(valor)} por ${textoQtdEmb(info, qtd)}`;
+  return fim(textoQtdEmb(info, qtd));
 }
 // Quanto a receita usa do item (por fornada, por cookie ou por unidade do produto). null = não entra em receita.
 function usoNaReceita(nome){
@@ -3122,11 +3123,12 @@ function cartaoPrecosItens(){
       const p = precoPartes(nome, n);
       return p.main + (p.sub ? `<br><small style="opacity:.75;">${p.sub}</small>` : "");
     };
-    const digitado = textoUltimoDigitado(nome);
+    const ud = textoUltimoDigitado(nome, true);
+    const digitado = ud ? `<b>${brl(ud.valor)}</b><br><small style="opacity:.75;">por ${esc(ud.qt)}</small>` : "";
     return `<tr>
       <td>${esc(nome)}</td>
       <td class="price" style="text-align:right;">${c === null ? `<span style="color:var(--wine);">sem preço</span>` : medio(c)}</td>
-      <td class="price" style="text-align:right;">${digitado ? esc(digitado) : "—"}</td>
+      <td class="price" style="text-align:right;">${digitado || "—"}</td>
       <td style="text-align:right;"><button class="btn-sec cp-corrigir" data-nome="${esc(nome)}" type="button" style="padding:0.2rem 0.55rem; font-size:0.78rem;">Corrigir</button></td>
     </tr>`;
   }).join("");
