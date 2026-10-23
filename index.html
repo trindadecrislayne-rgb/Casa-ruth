@@ -439,6 +439,32 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
   .kpi .det{font-size:.78rem;}
   .cartao.c4{grid-column:span 4;} .cartao.c6{grid-column:span 6;} .cartao.c8{grid-column:span 8;} .cartao.c12{grid-column:1/-1;}
 }
+
+/* ==== Receitas: cada cartão com a altura do próprio conteúdo (nada de cartão esticado) ==== */
+#view-receitas .p-grade{align-items:start;}
+
+/* ==== Vidro (estilo Liquid Glass): translúcido, desfoque, brilho fino na borda ==== */
+:root{--vidro-fundo:color-mix(in srgb, var(--card) 58%, transparent); --vidro-borda:rgba(255,255,255,.65); --vidro-brilho:rgba(255,255,255,.75);}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--vidro-borda:rgba(255,255,255,.16); --vidro-brilho:rgba(255,255,255,.14);} }
+:root[data-theme="dark"]{--vidro-borda:rgba(255,255,255,.16); --vidro-brilho:rgba(255,255,255,.14);}
+.kpi, #sync-status, #btn-sair, .p-estado, .editor-box{
+  background:var(--vidro-fundo) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%);
+  border:1px solid var(--vidro-borda) !important;
+  box-shadow:inset 0 1px 0 var(--vidro-brilho), inset 0 -1px 0 rgba(255,255,255,.12), 0 12px 28px -16px rgba(78,20,32,.38) !important;
+}
+@media (min-width:900px){
+nav#sidebar button.active{
+  background:rgba(255,255,255,.2) !important; -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
+  border:1px solid rgba(255,255,255,.38) !important; color:#fff !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 8px 18px -10px rgba(0,0,0,.6) !important;
+}
+}
+@media (max-width:899px){
+  nav.tabs{ -webkit-backdrop-filter:blur(22px) saturate(170%); backdrop-filter:blur(22px) saturate(170%); background:color-mix(in srgb, var(--card) 62%, transparent) !important; border:1px solid var(--vidro-borda) !important; box-shadow:inset 0 1px 0 var(--vidro-brilho), 0 14px 30px -14px rgba(78,20,32,.45) !important; }
+}
+/* ==== Topo mais baixo: o aviso de sincronização não cobre mais o título ==== */
+@media (min-width:900px){ main{padding-top:calc(env(safe-area-inset-top,0px) + 3.6rem);} }
 </style>
 </head>
 <body>
@@ -547,7 +573,8 @@ const sabores = [
   { id:"nut", nome:"Nut Ruth", recheio:[{n:"Nutella", g:30, unidade:"kg", porCookie:true, tamTipico:350}] },
   { id:"kinder", nome:"Kinder Ruth", recheio:[
     {n:"Kinder Bueno", g:0, unidade:"kg", porCookie:true, pendente:true},
-    {n:"Chocolate branco (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true}
+    {n:"Chocolate branco (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true},
+    {n:"Cobertura (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true}
   ] },
   { id:"croc", nome:"Croc Ruth", recheio:[{n:"Ovomaltine", g:30, unidade:"kg", porCookie:true, tamTipico:370}] },
 ];
@@ -817,7 +844,7 @@ function render(){
 
   // Massa-base (compartilhada)
   const baseDiv = document.createElement("div");
-  baseDiv.className = "cartao c6";
+  baseDiv.className = "cartao c6 span2";
   baseDiv.innerHTML = `
     <h2>Massa-base</h2>
     <div class="sub">${PESO_MASSA_POR_COOKIE}g por cookie · fornada de ${massaBase.reduce((s,i)=>s+ (i.unidade==="un"?0:i.g),0)}g de massa</div>
@@ -847,7 +874,7 @@ function render(){
       ${recheioRows}
       ${maisRows}
       <div class="acoes" style="display:flex; gap:.4rem; flex-wrap:wrap;">
-        <input class="rx-n" list="np-ing-lista" type="text" placeholder="Ingrediente a mais (ex.: crocante)" style="${CK_INPUT} flex:2; min-width:130px;">
+        <input class="rx-n" list="np-ing-lista" type="text" placeholder="Ingrediente a mais (ex.: cobertura, crocante)" style="${CK_INPUT} flex:2; min-width:130px;">
         <input class="rx-q" type="number" step="0.1" inputmode="decimal" placeholder="Quanto" style="${CK_INPUT} flex:1; min-width:70px;">
         <select class="rx-u" style="${CK_INPUT}"><option value="g">gramas</option><option value="un">unidades</option></select>
         <button class="btn-sec rx-add" data-sabor="${s.id}" type="button">+ ingrediente</button>
