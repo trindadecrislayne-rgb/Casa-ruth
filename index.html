@@ -571,7 +571,7 @@ let RENDIMENTO_FORNADA = loadRendimento();
 const sabores = [
   { id:"choco", nome:"Choco Ruth", recheio: [] },
   { id:"nut", nome:"Nut Ruth", recheio:[{n:"Nutella", g:30, unidade:"kg", porCookie:true, tamTipico:350}] },
-  { id:"kinder", nome:"Kinder Ruth", recheio:[
+  { id:"kinder", nome:"Kinder Ruth", mistura:true, recheio:[
     {n:"Kinder Bueno", g:0, unidade:"kg", porCookie:true, pendente:true, tamTipico:43, emb:{f:43, desc:"43 g, 2 barrinhas de 4 tabletes"}},
     {n:"Chocolate branco (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true},
     {n:"Cobertura (Kinder Ruth)", g:0, unidade:"un", qtd:1, porCookie:true, nomeUn:"tablete", emb:{f:8, desc:"8 tabletes de 43 g"}}
@@ -644,7 +644,46 @@ function custoIngrediente(ing){
   return (preco / tam) * gramasEfetivas(ing);
 }
 
+// ---- Receita do recheio misturado (ex.: Kinder Bueno + chocolate branco) ----
+// Guarda como a receita do recheio é feita; daí o app calcula quantos gramas de cada um vão em cada cookie
+// e grava esse resultado na mesma chave de sempre (casaruth_recheio_gramas).
+const RECHEIO_RECEITA_KEY = "casaruth_recheio_receita";
+function loadRecheioReceita(){ try{ return JSON.parse(localStorage.getItem(RECHEIO_RECEITA_KEY)||"{}"); }catch(e){return {};} }
+function saveRecheioReceita(obj){ try{ localStorage.setItem(RECHEIO_RECEITA_KEY, JSON.stringify(obj)); }catch(e){} marcarAlterado(); }
+let recheioReceita = loadRecheioReceita();
+function misturaDoSabor(sid){ return sabores.find(x=>x.id === sid && x.mistura) || null; }
+function ingsDaMistura(sab){ return (sab.recheio || []).filter(i=>i.unidade !== "un" && i.porCookie); }
+function misturaDoIng(nome){ return sabores.find(x=> x.mistura && ingsDaMistura(x).some(i=>i.n === nome)) || null; }
+// partes de uma receita do recheio, em gramas: [{ing, g}] e total (null se incompleta)
+function partesDaMistura(sab, r){
+  if (!r || !r.partes) return null;
+  const lista = ingsDaMistura(sab).map(ing=>{
+    const v = parseFloat(r.partes[ing.n]);
+    const g = (ing.emb && ing.emb.f && r.pacotes && r.pacotes[ing.n] > 0) ? r.pacotes[ing.n] * ing.emb.f : v;
+    return { ing, g };
+  });
+  if (lista.some(x=> !(x.g > 0))) return null;
+  return { lista, total: lista.reduce((a,x)=>a+x.g, 0) };
+}
+function salvarMistura(sid, r){
+  const sab = misturaDoSabor(sid); const pt = sab && partesDaMistura(sab, r);
+  if (!pt || !(r.peso > 0)) return false;
+  recheioReceita[sid] = r; saveRecheioReceita(recheioReceita);
+  pt.lista.forEach(x=>{ recheioGramas[x.ing.n] = String(Math.round(r.peso * x.g / pt.total * 1000) / 1000); });
+  saveRecheioGramas(recheioGramas);
+  return true;
+}
+
 function inputRow(ing){
+  const mi = misturaDoIng(ing.n);
+  if (mi){
+    const g = parseFloat(recheioGramas[ing.n]);
+    const txt = g > 0 ? `${fmtNum(g)} g/cookie <small style="opacity:.7;">(da receita do recheio)</small>` : `<span style="opacity:.6;">falta preencher a receita do recheio</span>`;
+    return `<tr>
+    <td>${ing.n}</td>
+    <td class="qty">${txt}</td>
+  </tr>`;
+  }
   const un = ing.unidade === "un" ? "un" : "kg";
   let qtyLabel;
   if (ing.porCookie && ing.unidade === "un" && !ing.proprio){
@@ -852,6 +891,32 @@ function renderProdutosNovos(grade){
   }));
 }
 
+function formMistura(sab){
+  const r = recheioReceita[sab.id] || {};
+  const ings = ingsDaMistura(sab);
+  const inp = "width:70px; text-align:right; padding:0.25rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;";
+  const linhas = ings.map(ing=>{
+    if (ing.emb && ing.emb.f){
+      const v = (r.pacotes && r.pacotes[ing.n]) || 5;
+      return `<div class="linha-val"><span>${esc(ing.n)}</span><span><input class="mx-pac" data-ing="${esc(ing.n)}" type="number" step="1" min="0" inputmode="numeric" value="${v}" style="${inp}"> pacotinhos de ${ing.emb.f} g</span></div>`;
+    }
+    const v = (r.partes && r.partes[ing.n]) || 250;
+    return `<div class="linha-val"><span>${esc(ing.n)}</span><span><input class="mx-g" data-ing="${esc(ing.n)}" type="number" step="1" min="0" inputmode="decimal" value="${v}" style="${inp}"> g</span></div>`;
+  }).join("");
+  const pt = partesDaMistura(sab, r);
+  const resumo = pt && r.peso > 0
+    ? `Receita salva: ${fmtNum(pt.total)} g de recheio, rende ${fmtNum(pt.total / r.peso)} recheios de ${fmtNum(r.peso)} g.`
+    : `Ainda não salvou. Preencha e aperte o botão para o app calcular os gramas de cada um por cookie.`;
+  return `<div class="mx-form" data-sabor="${sab.id}" style="margin-top:.8rem; padding-top:.7rem; border-top:1px dashed var(--borda-cartao);">
+    <div class="sub" style="font-weight:600;">Receita do recheio (de uma vez só)</div>
+    ${linhas}
+    <div class="linha-val"><span>Peso do recheio em cada cookie</span><span><input class="mx-peso" type="number" step="0.5" min="0" inputmode="decimal" value="${r.peso || 30}" style="${inp}"> g</span></div>
+    <div class="mx-calc sub" style="margin-top:.4rem;"></div>
+    <div class="sub">${resumo}</div>
+    <button class="btn-sec mx-salvar" type="button" style="margin-top:.5rem;">Salvar receita do recheio</button>
+  </div>`;
+}
+
 function render(){
   const wrap = document.getElementById("recipes");
   wrap.innerHTML = `<p style="font-size:0.85rem; opacity:0.75; margin:0 0 0.8rem;">Aqui ficam só as quantidades de cada receita. O preço dos ingredientes fica na aba Comprar.</p>`;
@@ -890,6 +955,7 @@ function render(){
       <h2>${s.nome}</h2>
       <div class="sub">${PESO_MASSA_POR_COOKIE + s.recheio.filter(i=>i.unidade !== "un").reduce((a,i)=>a+gramasEfetivas(i),0)}g por cookie</div>
       ${recheioRows}
+      ${s.mistura ? formMistura(s) : ""}
       ${maisRows}
       <div class="acoes" style="display:flex; gap:.4rem; flex-wrap:wrap;">
         <input class="rx-n" list="np-ing-lista" type="text" placeholder="Ingrediente a mais (ex.: cobertura, crocante)" style="${CK_INPUT} flex:2; min-width:130px;">
@@ -920,6 +986,28 @@ function render(){
   if (rendInput) rendInput.addEventListener("change", e=>{
     const v = parseFloat(e.target.value);
     if (!isNaN(v) && v > 0){ RENDIMENTO_FORNADA = v; saveRendimento(v); render(); }
+  });
+
+  wrap.querySelectorAll(".mx-form").forEach(f=>{
+    const sid = f.dataset.sabor, sab = misturaDoSabor(sid);
+    const ler = ()=>{
+      const r = { peso: parseFloat(f.querySelector(".mx-peso").value) || 0, partes:{}, pacotes:{} };
+      f.querySelectorAll(".mx-pac").forEach(i=>{ r.pacotes[i.dataset.ing] = parseFloat(i.value) || 0; });
+      f.querySelectorAll(".mx-g").forEach(i=>{ r.partes[i.dataset.ing] = parseFloat(i.value) || 0; });
+      return r;
+    };
+    const atualizar = ()=>{
+      const r = ler(), pt = partesDaMistura(sab, r), el = f.querySelector(".mx-calc");
+      el.textContent = (pt && r.peso > 0)
+        ? "Dá " + fmtNum(pt.total) + " g, ou " + fmtNum(pt.total / r.peso) + " recheios. Em cada cookie: " + pt.lista.map(x=> fmtNum(r.peso * x.g / pt.total) + " g de " + x.ing.n).join(" + ") + "."
+        : "";
+    };
+    f.querySelectorAll("input").forEach(i=> i.addEventListener("input", atualizar));
+    atualizar();
+    f.querySelector(".mx-salvar").addEventListener("click", ()=>{
+      if (!salvarMistura(sid, ler())){ alert("Preencha todas as quantidades com números maiores que zero."); return; }
+      render();
+    });
   });
 
   wrap.querySelectorAll(".recheio-g-input").forEach(inp=>{
