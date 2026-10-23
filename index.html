@@ -572,9 +572,9 @@ const sabores = [
   { id:"choco", nome:"Choco Ruth", recheio: [] },
   { id:"nut", nome:"Nut Ruth", recheio:[{n:"Nutella", g:30, unidade:"kg", porCookie:true, tamTipico:350}] },
   { id:"kinder", nome:"Kinder Ruth", recheio:[
-    {n:"Kinder Bueno", g:0, unidade:"kg", porCookie:true, pendente:true},
+    {n:"Kinder Bueno", g:0, unidade:"kg", porCookie:true, pendente:true, tamTipico:43, emb:{f:43, desc:"43 g, 2 barrinhas de 4 tabletes"}},
     {n:"Chocolate branco (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true},
-    {n:"Cobertura (Kinder Ruth)", g:0, unidade:"kg", porCookie:true, pendente:true}
+    {n:"Cobertura (Kinder Ruth)", g:0, unidade:"un", qtd:1, porCookie:true, nomeUn:"tablete", emb:{f:8, desc:"8 tabletes de 43 g"}}
   ] },
   { id:"croc", nome:"Croc Ruth", recheio:[{n:"Ovomaltine", g:30, unidade:"kg", porCookie:true, tamTipico:370}] },
 ];
@@ -636,7 +636,7 @@ function custoIngrediente(ing){
     const tam = parseFloat(dados?.tam);
     const precoTotal = parseFloat(dados?.preco);
     if (!dados || isNaN(tam) || isNaN(precoTotal) || tam <= 0) return null;
-    return (precoTotal / tam) * (ing.qtd ?? 1);
+    return (precoTotal / tam) * qtdUnEfetiva(ing);
   }
   const tam = parseFloat(dados?.tam ?? ing.tamTipico);
   const preco = parseFloat(dados?.preco);
@@ -647,7 +647,11 @@ function custoIngrediente(ing){
 function inputRow(ing){
   const un = ing.unidade === "un" ? "un" : "kg";
   let qtyLabel;
-  if (ing.porCookie){
+  if (ing.porCookie && ing.unidade === "un" && !ing.proprio){
+    const val = recheioGramas[ing.n + "#un"] ?? (ing.qtd ?? 1);
+    qtyLabel = `<input class="recheio-g-input" data-ing="${ing.n}#un" type="number" step="0.5" inputmode="decimal"
+      placeholder="${ing.nomeUn || "un"}/cookie" value="${val}" style="width:60px; text-align:right; padding:0.2rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;"> ${ing.nomeUn || "un"}/cookie`;
+  } else if (ing.porCookie){
     const val = recheioGramas[ing.n] ?? (ing.g > 0 ? ing.g : "");
     qtyLabel = `<input class="recheio-g-input" data-ing="${ing.n}" type="number" step="0.1" inputmode="decimal"
       placeholder="g/cookie" value="${val}" style="width:60px; text-align:right; padding:0.2rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;"> g/cookie`;
@@ -659,6 +663,20 @@ function inputRow(ing){
     <td>${ing.n}</td>
     <td class="qty">${qtyLabel}</td>
   </tr>`;
+}
+
+// Linha da receita com a coluna "Custa" (quanto a quantidade usada custa)
+function inputRowCusto(ing){
+  const c = custoIngrediente(ing);
+  const txt = estaPendente(ing) ? `<span style="opacity:.6;">falta definir</span>` : (c === null ? `<span style="color:var(--wine);">sem preço</span>` : brlUn(c));
+  return inputRow(ing).replace(/<\/tr>\s*$/, `<td class="qty">${txt}</td></tr>`);
+}
+function tableHeadCusto(rotulo){
+  return `<thead><tr>
+    <th>Ingrediente</th>
+    <th class="qty">Usa</th>
+    <th class="qty">Custa ${rotulo}</th>
+  </tr></thead>`;
 }
 
 function tableHead(){
@@ -852,7 +870,7 @@ function render(){
       Essa receita rende <input id="rendimento-input" type="number" step="1" min="1" value="${RENDIMENTO_FORNADA}"
         style="width:50px; text-align:center; padding:0.2rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;"> cookies por fornada
     </div>
-    <table>${tableHead()}<tbody>${massaBase.map(inputRow).join("")}</tbody></table>
+    <table>${tableHeadCusto("por fornada")}<tbody>${massaBase.map(ing=>inputRowCusto(ing)).join("")}</tbody></table>
   `;
   grade.appendChild(baseDiv);
 
@@ -863,7 +881,7 @@ function render(){
     div.className = "cartao c6";
     const base = s.recheioBase || s.recheio, plus = receitaExtra[s.id] || [];
     const recheioRows = base.length
-      ? `<table>${tableHead()}<tbody>${base.map(inputRow).join("")}</tbody></table>`
+      ? `<table>${tableHeadCusto("por cookie")}<tbody>${base.map(ing=>inputRowCusto(ing)).join("")}</tbody></table>`
       : `<p style="font-size:0.9rem; opacity:0.7;">Sem recheio — só a massa-base.</p>`;
     const maisRows = plus.length
       ? `<div class="sub" style="margin-top:.7rem;">Ingredientes a mais</div><table><tbody>${plus.map((i,k)=>`<tr><td>${esc(i.n)}</td><td class="qty">${textoQtdIng(i)} <button type="button" class="btn-sec" data-rx-del="${s.id}|${k}" style="padding:.05rem .55rem; margin-left:.4rem;">tirar</button></td></tr>`).join("")}</tbody></table>`
@@ -975,9 +993,27 @@ function estaPendente(ing){
   return !!ing.pendente && !(parseFloat(recheioGramas[ing.n]) > 0);
 }
 
+// Unidades por cookie (ex.: 1 tablete). Ingrediente do app pode ter o valor ajustado em Receitas (guardado como "nome#un").
+function qtdUnEfetiva(ing){
+  if (ing.proprio) return ing.qtd ?? 1;
+  const ov = parseFloat(recheioGramas[ing.n + "#un"]);
+  return (!isNaN(ov) && ov > 0) ? ov : (ing.qtd ?? 1);
+}
+function fmtGramas(g){ return g >= 1000 ? fmtNum(g/1000) + " kg" : fmtNum(g) + " g"; }
+// Embalagem em que o item é comprado (ex.: caixa com 8 tabletes, pacote de 500 g). null = não definida.
+function embDoItem(ing){
+  if (!ing) return null;
+  if (ing.emb) return { f: ing.emb.f, desc: ing.emb.desc };
+  if (ing.unidade !== "un" && ing.tamTipico > 0) return { f: ing.tamTipico, desc: fmtGramas(ing.tamTipico) };
+  return null;
+}
+function textoUsoReceita(ing){
+  return ing.unidade === "un" ? `${fmtNum(qtdUnEfetiva(ing))} ${ing.nomeUn || "un"}` : `${fmtNum(gramasEfetivas(ing))} g`;
+}
+
 function consumoPorCookie(ing, deMassaBase){
   if (ing.unidade === "un") {
-    const qtd = ing.qtd ?? 1;
+    const qtd = qtdUnEfetiva(ing);
     return deMassaBase ? (qtd / RENDIMENTO_FORNADA) : qtd; // 1 ovo é por FORNADA, não por cookie
   }
   const g = gramasEfetivas(ing);
@@ -1679,6 +1715,25 @@ function custoPorCookieUltimoPago(s){
   return massa / RENDIMENTO_FORNADA * (s.massaQtd > 0 ? s.massaQtd : 1) + rec + emb;
 }
 
+// Custo de 1 cookie de um sabor, ingrediente por ingrediente (a soma bate com custoPorCookieDoSabor)
+function detalheCustoSabor(s){
+  const mq = s.massaQtd > 0 ? s.massaQtd : 1;
+  const linhas = [];
+  massaBase.forEach(ing=>{
+    const c = custoIngrediente(ing);
+    const cons = consumoPorCookie(ing, true) * mq;
+    linhas.push({ nome: ing.n, usa: ing.unidade === "un" ? `${fmtNum(cons)} un` : `${fmtNum(cons)} g`, custo: c === null ? null : c / RENDIMENTO_FORNADA * mq });
+  });
+  s.recheio.forEach(ing=>{
+    linhas.push({ nome: ing.n, usa: estaPendente(ing) ? "falta definir" : textoUsoReceita(ing), custo: custoIngrediente(ing) });
+  });
+  const emb = embalagemDoSabor(s);
+  if (emb > 0) linhas.push({ nome: "Embalagens", usa: "", custo: emb });
+  const falta = linhas.some(l=> l.custo === null);
+  const total = falta ? null : linhas.reduce((a,l)=> a + l.custo, 0);
+  return { linhas, total };
+}
+
 function renderPreco(){
   const el = document.getElementById("preco");
   if (!el) return;
@@ -1820,6 +1875,18 @@ function renderPreco(){
     ${futuro}
     ${ingred}
     ${decisao}
+    <div class="cartao c12">
+      <h2>De onde vem o custo de cada cookie</h2>
+      <div class="sub">Só ingredientes e embalagem (sem as contas fixas). Toque no sabor para abrir.</div>
+      ${sabores.map(s=>{
+        const d = detalheCustoSabor(s);
+        return `<details style="margin-top:0.5rem;"><summary style="cursor:pointer; font-weight:600;">${esc(NOME_SABOR[s.id] || s.nome)} — ${d.total === null ? "falta preço ou gramatura" : brlUn(d.total) + " por cookie"}</summary>
+          <table class="tabela-real" style="margin-top:0.4rem;"><thead><tr><th>Ingrediente</th><th class="qty">Usa por cookie</th><th class="price">Custa</th></tr></thead><tbody>${
+            d.linhas.map(l=>`<tr><td>${esc(l.nome)}</td><td class="qty">${l.usa}</td><td class="price">${l.custo === null ? `<span style="color:var(--wine);">sem preço</span>` : brlUn(l.custo)}</td></tr>`).join("")
+          }<tr><td><b>Total</b></td><td></td><td class="price"><b>${d.total === null ? "—" : brlUn(d.total)}</b></td></tr></tbody></table>
+        </details>`;
+      }).join("")}
+    </div>
     </div>
   `;
 
@@ -2906,12 +2973,40 @@ function desfazerCompra(id){
 }
 // </compras-logica>
 
+// Migração única: a "Cobertura (Kinder Ruth)" era medida em gramas e passa a ser medida em tabletes (1 tablete = 43 g ÷ 8).
+// Converte preço, estoque e histórico de compras desse item. A marca fica em recheioGramas, que já vai para a nuvem.
+const G_TABLETE = 43 / 8;
+function migrarCoberturaUnidade(){
+  const NOME = "Cobertura (Kinder Ruth)", MARCA = "__mig_cobertura_un";
+  if (recheioGramas[MARCA]) return;
+  const dv = x => parseFloat(x) / G_TABLETE;
+  const d = precos[NOME];
+  if (d && parseFloat(d.tam) > 0){
+    d.tam = String(arred(dv(d.tam), 3));
+    if (d.ult && d.ult.qtd > 0) d.ult.qtd = arred(d.ult.qtd / G_TABLETE, 3);
+  }
+  if (estoque[NOME] !== undefined && estoque[NOME] !== "" && !isNaN(parseFloat(estoque[NOME]))) estoque[NOME] = String(arred(dv(estoque[NOME]), 2));
+  historicoCompras.forEach(c=> (c.itens || []).forEach(it=>{
+    if (it.nome !== NOME) return;
+    it.qtd = arred(it.qtd / G_TABLETE, 3); it.un = "un";
+    if (it.antes){
+      if (it.antes.estoque !== null && it.antes.estoque !== undefined && !isNaN(parseFloat(it.antes.estoque))) it.antes.estoque = String(arred(dv(it.antes.estoque), 2));
+      if (it.antes.precos && parseFloat(it.antes.precos.tam) > 0) it.antes.precos.tam = String(arred(dv(it.antes.precos.tam), 3));
+    }
+  }));
+  recheioGramas[MARCA] = "1";
+  savePrecos(precos); saveStock(estoque); saveCompras(historicoCompras); saveRecheioGramas(recheioGramas);
+}
+
 // ---- Tela Comprar ----
 const CP_INPUT = "padding:0.5rem; border-radius:12px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit; width:100%; box-sizing:border-box;";
 function opcoesUnidadeCompra(nome){
   const info = infoItemCompra(nome);
   if (!info) return [];
-  if (info.un === "g") return [{v:"kg", t:"kg", f:1000}, {v:"g", t:"g", f:1}];
+  const emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
+  const opEmb = emb ? [{v:"emb", t:"embalagem", f:emb.f}] : [];
+  if (info.un === "g") return opEmb.concat([{v:"kg", t:"kg", f:1000}, {v:"g", t:"g", f:1}]);
+  if (info.tipo === "ing" && emb) return opEmb.concat([{v:"un", t:(info.ing.nomeUn || "un"), f:1}]);
   if (info.tipo === "ing") return [{v:"un", t:"un", f:1}, {v:"duzia", t:"dúzia", f:12}];
   return [{v:"un", t:"un", f:1}];
 }
@@ -2924,14 +3019,47 @@ function ultimoPrecoPago(nome){
   }
   return null;
 }
+// Preço escrito do jeito da cozinha: por embalagem (e por kg ou por tablete logo depois)
+function precoPartes(nome, v){
+  const info = infoItemCompra(nome);
+  const porKg = info && info.un === "g";
+  const emb = info && info.tipo === "ing" ? embDoItem(info.ing) : null;
+  const nomeUn = (info && info.ing && info.ing.nomeUn) || "unidade";
+  const resto = porKg ? brl(v * 1000) + "/kg" : brlUn(v) + " por " + nomeUn;
+  if (emb) return { main: brl(v * emb.f) + " por embalagem", sub: resto };
+  return { main: porKg ? brl(v * 1000) + "/kg" : brlUn(v) + "/un", sub: "" };
+}
+function precoLegivel(nome, v){ const p = precoPartes(nome, v); return p.main + (p.sub ? ` (${p.sub})` : ""); }
+function textoQtdEmb(info, qtd){
+  const emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
+  if (emb && qtd > 0 && Math.abs(qtd / emb.f - Math.round(qtd / emb.f)) < 0.001){
+    const n = Math.round(qtd / emb.f);
+    return `${n} embalagem${n > 1 ? "ns" : ""} (${emb.desc})`;
+  }
+  return fmtQtdCompra(info.un, qtd);
+}
+// O que a pessoa digitou da última vez (Corrigir) ou, se não houver, a última compra registrada
+function textoUltimoDigitado(nome){
+  const info = infoItemCompra(nome);
+  if (!info) return "";
+  const d = precos[nome];
+  let valor = null, qtd = null;
+  if (info.tipo === "ing" && d && d.ult && d.ult.valor > 0 && d.ult.qtd > 0){ valor = d.ult.valor; qtd = d.ult.qtd; }
+  else {
+    for (let i = historicoCompras.length - 1; i >= 0; i--){
+      const x = (historicoCompras[i].itens || []).find(y=> y.nome === nome && y.valor > 0 && y.qtd > 0);
+      if (x){ valor = x.valor; qtd = x.qtd; break; }
+    }
+  }
+  return valor === null ? "" : `${brl(valor)} por ${textoQtdEmb(info, qtd)}`;
+}
 // Cartão com o preço de cada item: é aqui que mora o preço (a média é refeita a cada compra)
 function cartaoPrecosItens(){
   const nomes = todosIngredientesUnicos().map(i=>i.n).concat(itensExtras.map(it=>it.nome));
   const linhas = nomes.map(nome=>{
     const info = infoItemCompra(nome);
     if (!info) return "";
-    const porKg = info.un === "g";
-    const fmt = n => porKg ? brl(n * 1000) + "/kg" : brlUn(n) + "/un";
+    const fmt = n => { const p = precoPartes(nome, n); return p.main + (p.sub ? `<br><small style="opacity:.7;">${p.sub}</small>` : ""); };
     const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome);
     return `<tr>
       <td>${esc(nome)}</td>
@@ -2950,6 +3078,63 @@ function lerValorDigitado(txt){
   let t = String(txt).trim().replace(/^R\$\s*/i, "");
   if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
   return parseFloat(t);
+}
+
+// Corrigir preço: pergunta só o valor pago (na embalagem), mostra a conta e pede confirmação antes de salvar
+function corrigirPrecoItem(nome){
+  const info = infoItemCompra(nome);
+  if (!info) return;
+  const porKg = info.un === "g";
+  const emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
+  const ult = textoUltimoDigitado(nome);
+  const cab = ult ? `Última vez que você digitou: ${ult}.\n\n` : "";
+  let pago, qtd;   // qtd em gramas ou unidades
+  if (emb){
+    const t1 = prompt(`${cab}Quanto você pagou em "${nome}"? Digite só o valor em reais (ex.: 10,50).\nO app considera 1 embalagem (${emb.desc}) e faz a conta sozinho.`);
+    if (t1 === null) return;
+    pago = lerValorDigitado(t1);
+    if (!(pago > 0)){ alert("Digite um valor maior que zero, por exemplo 10,50."); return; }
+    const t2 = prompt("Esse valor comprou quantas embalagens? Se foi só 1, toque em OK.", "1");
+    if (t2 === null) return;
+    const n = lerValorDigitado(t2);
+    if (!(n > 0)){ alert("Digite uma quantidade maior que zero, por exemplo 1."); return; }
+    qtd = n * emb.f;
+  } else {
+    const t1 = prompt(`${cab}Quanto você pagou em "${nome}"? Digite o valor total em reais (ex.: 190).\nO app faz a divisão sozinho.`);
+    if (t1 === null) return;
+    pago = lerValorDigitado(t1);
+    if (!(pago > 0)){ alert("Digite um valor maior que zero, por exemplo 190."); return; }
+    const t2 = prompt(porKg
+      ? "Quantos quilos esse valor comprou? (ex.: 3). Para gramas, escreva assim: 500 g."
+      : "Quantas unidades esse valor comprou? (ex.: 30). Para dúzias, escreva assim: 2 dúzias.");
+    if (t2 === null) return;
+    const qt = String(t2).trim().toLowerCase();
+    let q = lerValorDigitado(qt.replace(/[^0-9.,]/g, ""));
+    if (!(q > 0)){ alert("Digite uma quantidade maior que zero, por exemplo 3."); return; }
+    if (porKg){ q = /\d\s*g(ramas?)?\s*$/.test(qt) ? q : q * 1000; }
+    else if (/d[uú]zia/.test(qt)) q = q * 12;
+    qtd = q;
+  }
+  const v = pago / qtd;                 // por grama ou por unidade
+  const antes = custoAtualUnit(nome);
+  let msg = `${nome}: você pagou ${brl(pago)} por ${textoQtdEmb(info, qtd)}.\nIsso dá ${precoLegivel(nome, v)}.`;
+  if (info.tipo === "ing" && info.ing.porCookie && !estaPendente(info.ing)){
+    msg += `\nNo cookie: ${textoUsoReceita(info.ing)} custa ${brlUn(v * consumoPorCookie(info.ing, false))}.`;
+  }
+  if (antes !== null && (v / antes > 2 || v / antes < 0.5)){
+    msg += `\n\nATENÇÃO: antes estava ${precoLegivel(nome, antes)}. Esse valor mudou muito, confere?`;
+  }
+  msg += "\n\nSalvar este preço?";
+  if (!confirm(msg)) return;
+  if (info.tipo === "extra"){
+    info.extra.precoUnitario = v.toFixed(4);
+    saveExtras(itensExtras);
+  } else {
+    precos[nome] = { tam: String(arred(qtd, 3)), preco: String(arred(pago, 2)), ult: { valor: arred(pago, 2), qtd: arred(qtd, 3) } };
+    savePrecos(precos);
+  }
+  render();
+  renderComprar(`Custo de <b>${esc(nome)}</b> corrigido: ${esc(precoLegivel(nome, v))} (${brl(pago)} por ${esc(textoQtdEmb(info, qtd))}).`);
 }
 
 function renderComprar(aviso){
@@ -3036,10 +3221,14 @@ function renderComprar(aviso){
     const porKg = info.un === "g";
     const fatorC = porKg ? 1000 : 1, unC = porKg ? "kg" : "un";
     const fmtC = n => porKg ? brl(n * fatorC) : brlUn(n);
-    let h = `Você está comprando <b>${fmtQtdCompra(info.un, f.qtdBase)}</b>. Estoque: ${fmtQtdCompra(info.un, r.estAntes)} → <b>${fmtQtdCompra(info.un, r.estDepois)}</b>.`;
+    const embI = info.tipo === "ing" ? embDoItem(info.ing) : null;
+    let h = (f.op && f.op.v === "emb" && embI ? `1 embalagem = ${embI.desc}. ` : "") + `Você está comprando <b>${textoQtdEmb(info, f.qtdBase)}</b>. Estoque: ${fmtQtdCompra(info.un, r.estAntes)} → <b>${fmtQtdCompra(info.un, r.estDepois)}</b>.`;
     if (r.estAntes < 0) h += `<br><span style="color:var(--wine);">O estoque estava negativo: parte desta compra cobre o que já foi usado.</span>`;
     if (f.valor > 0){
-      h += `<br>Preço desta compra: ${fmtC(f.valor / f.qtdBase)}/${unC}.`;
+      h += `<br>Preço desta compra: <b>${precoLegivel(f.nome, f.valor / f.qtdBase)}</b>.`;
+      if (info.tipo === "ing" && info.ing.porCookie && !estaPendente(info.ing)){
+        h += `<br>No cookie: usa ${textoUsoReceita(info.ing)}, custa <b>${brlUn(r.custoDepois * consumoPorCookie(info.ing, false))}</b> por cookie.`;
+      }
       h += `<br>Custo médio: ${r.custoAntes === null ? "sem preço antes" : fmtC(r.custoAntes) + "/" + unC} → <b>${fmtC(r.custoDepois)}/${unC}</b>.`;
       if (r.custoAntes !== null){
         const razao = (f.valor / f.qtdBase) / r.custoAntes;
@@ -3051,35 +3240,7 @@ function renderComprar(aviso){
     previa.innerHTML = h;
   }
   el.querySelectorAll(".cp-corrigir").forEach(b=>{
-    b.addEventListener("click", ()=>{
-      const nome = b.dataset.nome;
-      const info = infoItemCompra(nome);
-      if (!info) return;
-      const porKg = info.un === "g";
-      const txtPago = prompt(`Quanto você pagou em "${nome}"? Digite o valor total em reais (ex.: 190).\nO app faz a divisão sozinho. Isso corrige o custo médio; as próximas compras continuam a média a partir dele.`);
-      if (txtPago === null) return;
-      const pago = lerValorDigitado(txtPago);
-      if (!(pago > 0)){ alert("Digite um valor maior que zero, por exemplo 190."); return; }
-      const txtQtd = prompt(porKg
-        ? `Quantos quilos esse valor comprou? (ex.: 3). Para gramas, escreva assim: 500 g.`
-        : `Quantas unidades esse valor comprou? (ex.: 30). Para dúzias, escreva assim: 2 dúzias.`);
-      if (txtQtd === null) return;
-      const qtdTxt = String(txtQtd).trim().toLowerCase();
-      let qtd = lerValorDigitado(qtdTxt.replace(/[^0-9.,]/g, ""));
-      if (!(qtd > 0)){ alert("Digite uma quantidade maior que zero, por exemplo 3."); return; }
-      if (porKg && /\d\s*g(ramas?)?\s*$/.test(qtdTxt)) qtd = qtd / 1000;
-      if (!porKg && /d[uú]zia/.test(qtdTxt)) qtd = qtd * 12;
-      const v = pago / qtd;
-      const qtdFmt = porKg ? (qtd >= 1 ? qtd.toLocaleString("pt-BR", {maximumFractionDigits:3}) + " kg" : Math.round(qtd*1000) + " g") : qtd.toLocaleString("pt-BR", {maximumFractionDigits:2}) + " un";
-      if (info.tipo === "extra"){
-        info.extra.precoUnitario = v.toFixed(4);
-        saveExtras(itensExtras);
-      } else {
-        precos[nome] = porKg ? { tam: "1000", preco: String(arred(v, 2)) } : { tam: "1", preco: String(arred(v, 4)) };
-        savePrecos(precos);
-      }
-      renderComprar(`Custo de <b>${esc(nome)}</b> corrigido para ${porKg ? brl(v) + "/kg" : brlUn(v) + "/un"} (${brl(pago)} por ${qtdFmt}).`);
-    });
+    b.addEventListener("click", ()=> corrigirPrecoItem(b.dataset.nome));
   });
   sel.addEventListener("change", trocouItem);
   [selUn, qtdEl, valEl].forEach(x=> x.addEventListener("input", atualizarPrevia));
@@ -3096,8 +3257,9 @@ function renderComprar(aviso){
     const r = calcularCompraItem(f.nome, f.qtdBase, f.valor);
     if (r.custoAntes !== null){
       const razao = (f.valor / f.qtdBase) / r.custoAntes;
-      if ((razao > 2 || razao < 0.5) && !confirm("O preço desta compra está muito diferente do custo atual. Registrar mesmo assim?")) return;
+      if ((razao > 2 || razao < 0.5) && !confirm(`Esse valor deu ${precoLegivel(f.nome, f.valor / f.qtdBase)}, e o custo atual é ${precoLegivel(f.nome, r.custoAntes)}. Confere? Registrar mesmo assim?`)) return;
     }
+    if (!confirm(`${f.nome}: ${textoQtdEmb(info, f.qtdBase)} por ${brl(f.valor)}.\nIsso dá ${precoLegivel(f.nome, f.valor / f.qtdBase)}.\n\nRegistrar esta compra?`)) return;
     const dataISO = el.querySelector("#cp-data").value || hojeISO();
     registrarCompra({ itens:[{nome:f.nome, qtd:f.qtdBase, valor:f.valor}], dataISO, lancarCaixa: el.querySelector("#cp-caixa").checked, origem:"manual" });
     const porKg = info.un === "g";
@@ -3907,6 +4069,7 @@ async function carregarDoBanco(){
         saveSidebarPrefs(sidebarPrefs);
         aplicarSidebar();
       }
+      migrarCoberturaUnidade();
       congelarVendasAntigas();
       // guarda uma cópia local também, e atualiza a tela com o que veio do banco
       saveStock(estoque); saveRecheioGramas(recheioGramas); savePrecosVenda(precosVenda);
@@ -4332,6 +4495,7 @@ async function iniciarDb(){
   if (data.session) await entrou(data.session.user);
 }
 
+migrarCoberturaUnidade();
 congelarVendasAntigas();
 render();
 renderPainel();
