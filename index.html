@@ -1001,12 +1001,28 @@ function qtdUnEfetiva(ing){
 }
 function fmtGramas(g){ return g >= 1000 ? fmtNum(g/1000) + " kg" : fmtNum(g) + " g"; }
 // Embalagem em que o item é comprado (ex.: caixa com 8 tabletes, pacote de 500 g). null = não definida.
+function descEmb(ing, f){
+  return ing.unidade === "un" ? `${fmtNum(f)} ${ing.nomeUn || "un"}${(f !== 1 && ing.nomeUn) ? "s" : ""}` : fmtGramas(f);
+}
 function embDoItem(ing){
   if (!ing) return null;
-  if (ing.emb) return { f: ing.emb.f, desc: ing.emb.desc };
-  if (ing.unidade !== "un" && ing.tamTipico > 0) return { f: ing.tamTipico, desc: fmtGramas(ing.tamTipico) };
-  return null;
+  const base = ing.emb ? { f: ing.emb.f, desc: ing.emb.desc }
+    : ((ing.unidade !== "un" && ing.tamTipico > 0) ? { f: ing.tamTipico, desc: fmtGramas(ing.tamTipico) } : null);
+  if (!base) return null;
+  // o tamanho da última embalagem que a dona informou vale daqui pra frente
+  const mem = parseFloat(precos[ing.n] && precos[ing.n].embF);
+  if (mem > 0 && mem !== base.f) return { f: mem, desc: descEmb(ing, mem) };
+  return base;
 }
+// Lê "650", "650 g", "1 kg", "1,5 kg" (gramas) ou "8" (unidades)
+function lerTamEmb(txt, ehUn){
+  const t = String(txt).trim().toLowerCase();
+  let n = lerValorDigitado(t.replace(/[^0-9.,]/g, ""));
+  if (!(n > 0)) return NaN;
+  if (!ehUn && /kg|quilo/.test(t)) n *= 1000;
+  return n;
+}
+function fEmb(f){ return (f && f.op && f.op.v === "emb") ? f.op.f : undefined; }
 function textoUsoReceita(ing){
   return ing.unidade === "un" ? `${fmtNum(qtdUnEfetiva(ing))} ${ing.nomeUn || "un"}` : `${fmtNum(gramasEfetivas(ing))} g`;
 }
@@ -2883,7 +2899,7 @@ function aplicarCompraItem(nome, qtd, valor){
   estoque[nome] = String(r.estDepois);
   if (valor > 0){
     if (info.tipo === "extra") info.extra.precoUnitario = r.custoDepois.toFixed(4);
-    else precos[nome] = { tam: String(r.baseDepois), preco: String(arred(r.valorTotalDepois, 2)) };
+    else { const ef = precos[nome] && precos[nome].embF; precos[nome] = { tam: String(r.baseDepois), preco: String(arred(r.valorTotalDepois, 2)) }; if (ef) precos[nome].embF = ef; }
   }
   return antes;
 }
@@ -3020,21 +3036,23 @@ function ultimoPrecoPago(nome){
   return null;
 }
 // Preço escrito do jeito da cozinha: por embalagem (e por kg ou por tablete logo depois)
-function precoPartes(nome, v){
+function precoPartes(nome, v, fOv){
   const info = infoItemCompra(nome);
   const porKg = info && info.un === "g";
-  const emb = info && info.tipo === "ing" ? embDoItem(info.ing) : null;
+  let emb = info && info.tipo === "ing" ? embDoItem(info.ing) : null;
+  if (emb && fOv > 0) emb = { f: fOv, desc: descEmb(info.ing, fOv) };
   const nomeUn = (info && info.ing && info.ing.nomeUn) || "unidade";
   const resto = porKg ? brl(v * 1000) + "/kg" : brlUn(v) + " por " + nomeUn;
   if (emb) return { main: brl(v * emb.f) + " por embalagem", sub: resto };
   return { main: porKg ? brl(v * 1000) + "/kg" : brlUn(v) + "/un", sub: "" };
 }
-function precoLegivel(nome, v){ const p = precoPartes(nome, v); return p.main + (p.sub ? ` (${p.sub})` : ""); }
-function textoQtdEmb(info, qtd){
-  const emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
+function precoLegivel(nome, v, fOv){ const p = precoPartes(nome, v, fOv); return p.main + (p.sub ? ` (${p.sub})` : ""); }
+function textoQtdEmb(info, qtd, fOv){
+  let emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
+  if (emb && fOv > 0) emb = { f: fOv, desc: descEmb(info.ing, fOv) };
   if (emb && qtd > 0 && Math.abs(qtd / emb.f - Math.round(qtd / emb.f)) < 0.001){
     const n = Math.round(qtd / emb.f);
-    return `${n} embalagem${n > 1 ? "ns" : ""} (${emb.desc})`;
+    return `${n} ${n > 1 ? "embalagens" : "embalagem"} (${emb.desc})`;
   }
   return fmtQtdCompra(info.un, qtd);
 }
@@ -3053,16 +3071,35 @@ function textoUltimoDigitado(nome){
   }
   return valor === null ? "" : `${brl(valor)} por ${textoQtdEmb(info, qtd)}`;
 }
+// Quanto a receita usa do item (por fornada, por cookie ou por unidade do produto). null = não entra em receita.
+function usoNaReceita(nome){
+  const ing = todosIngredientesUnicos().find(i=>i.n === nome);
+  if (!ing || estaPendente(ing)) return null;
+  const q = ing.unidade === "un" ? qtdUnEfetiva(ing) : gramasEfetivas(ing);
+  if (!(q > 0)) return null;
+  const deMassa = massaBase.some(m=>m.n === nome);
+  const deSabor = sabores.some(sb=> !sb.extra && (sb.recheio || []).some(i=>i.n === nome));
+  const por = deMassa ? "na fornada" : (deSabor ? "por cookie" : "por unidade");
+  const un = ing.unidade === "un" ? (ing.nomeUn ? ing.nomeUn + (q !== 1 ? "s" : "") : "un") : "g";
+  return { q, txt: `${fmtNum(q)} ${un} ${por}` };
+}
 // Cartão com o preço de cada item: é aqui que mora o preço (a média é refeita a cada compra)
 function cartaoPrecosItens(){
   const nomes = todosIngredientesUnicos().map(i=>i.n).concat(itensExtras.map(it=>it.nome));
   const linhas = nomes.map(nome=>{
     const info = infoItemCompra(nome);
     if (!info) return "";
-    const fmt = n => { const p = precoPartes(nome, n); return p.main + (p.sub ? `<br><small style="opacity:.7;">${p.sub}</small>` : ""); };
+    const uso = usoNaReceita(nome);
     const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome);
+    // com receita: mostra o que a quantidade usada custa e, embaixo pequeno, o preço da embalagem
+    const fmt = n => {
+      const p = precoPartes(nome, n);
+      const peq = p.main + (p.sub ? ` · ${p.sub}` : "");
+      return uso ? `${(n * uso.q >= 1 ? brl(n * uso.q) : brlUn(n * uso.q))}<br><small style="opacity:.7;">${peq}</small>` : p.main + (p.sub ? `<br><small style="opacity:.7;">${p.sub}</small>` : "");
+    };
     return `<tr>
       <td>${esc(nome)}</td>
+      <td style="text-align:right; font-size:0.85rem;">${uso ? esc(uso.txt) : "—"}</td>
       <td class="price" style="text-align:right;">${c === null ? `<span style="color:var(--wine);">sem preço</span>` : fmt(c)}</td>
       <td class="price" style="text-align:right;">${u === null ? "—" : fmt(u)}</td>
       <td style="text-align:right;"><button class="btn-sec cp-corrigir" data-nome="${esc(nome)}" type="button" style="padding:0.2rem 0.55rem; font-size:0.78rem;">Corrigir</button></td>
@@ -3070,8 +3107,8 @@ function cartaoPrecosItens(){
   }).join("");
   return `<div class="cartao c7">
     <h2>Preço de cada item</h2>
-    <div class="sub">Custo médio: o app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar. Este é o único lugar dos preços.</div>
-    <table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Item</th><th class="price" style="text-align:right;">Custo médio</th><th class="price" style="text-align:right;">Último pago</th><th></th></tr></thead><tbody>${linhas}</tbody></table>
+    <div class="sub">Os valores grandes são quanto custa a quantidade que a receita usa (na fornada ou em cada cookie). Embaixo, em letra pequena, o preço da embalagem. Custo médio: o app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar.</div>
+    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;"><table class="tabela-real" style="margin-top:0.5rem; min-width:520px;"><thead><tr><th>Item</th><th style="text-align:right;">A receita usa</th><th class="price" style="text-align:right;">Custo médio<br><small style="font-weight:400;">do que a receita usa</small></th><th class="price" style="text-align:right;">Último pago<br><small style="font-weight:400;">do que a receita usa</small></th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
   </div>`;
 }
 function lerValorDigitado(txt){
@@ -3088,17 +3125,25 @@ function corrigirPrecoItem(nome){
   const emb = info.tipo === "ing" ? embDoItem(info.ing) : null;
   const ult = textoUltimoDigitado(nome);
   const cab = ult ? `Última vez que você digitou: ${ult}.\n\n` : "";
-  let pago, qtd;   // qtd em gramas ou unidades
+  let pago, qtd, tamEmb = null;   // qtd em gramas ou unidades
   if (emb){
-    const t1 = prompt(`${cab}Quanto você pagou em "${nome}"? Digite só o valor em reais (ex.: 10,50).\nO app considera 1 embalagem (${emb.desc}) e faz a conta sozinho.`);
+    const ehUn = info.un === "un";
+    const nomeUn = (info.ing && info.ing.nomeUn) || "unidade";
+    const t1 = prompt(`${cab}Quanto você pagou em "${nome}"? Digite só o valor em reais (ex.: 10,50).\nO app faz a conta sozinho.`);
     if (t1 === null) return;
     pago = lerValorDigitado(t1);
     if (!(pago > 0)){ alert("Digite um valor maior que zero, por exemplo 10,50."); return; }
+    const t3 = prompt(ehUn
+      ? `Quantos ${nomeUn}s vêm em cada embalagem que você comprou?\nSe for a de sempre (${emb.desc}), toque em OK.`
+      : `Quantas gramas tem a embalagem que você comprou? (ex.: 650, ou 1 kg)\nSe for a de sempre (${emb.desc}), toque em OK.`, String(emb.f));
+    if (t3 === null) return;
+    tamEmb = lerTamEmb(t3, ehUn);
+    if (!(tamEmb > 0)){ alert("Digite o tamanho da embalagem, por exemplo 650."); return; }
     const t2 = prompt("Esse valor comprou quantas embalagens? Se foi só 1, toque em OK.", "1");
     if (t2 === null) return;
     const n = lerValorDigitado(t2);
     if (!(n > 0)){ alert("Digite uma quantidade maior que zero, por exemplo 1."); return; }
-    qtd = n * emb.f;
+    qtd = n * tamEmb;
   } else {
     const t1 = prompt(`${cab}Quanto você pagou em "${nome}"? Digite o valor total em reais (ex.: 190).\nO app faz a divisão sozinho.`);
     if (t1 === null) return;
@@ -3117,7 +3162,7 @@ function corrigirPrecoItem(nome){
   }
   const v = pago / qtd;                 // por grama ou por unidade
   const antes = custoAtualUnit(nome);
-  let msg = `${nome}: você pagou ${brl(pago)} por ${textoQtdEmb(info, qtd)}.\nIsso dá ${precoLegivel(nome, v)}.`;
+  let msg = `${nome}: você pagou ${brl(pago)} por ${textoQtdEmb(info, qtd, tamEmb)}.\nIsso dá ${precoLegivel(nome, v, tamEmb)}.`;
   if (info.tipo === "ing" && info.ing.porCookie && !estaPendente(info.ing)){
     msg += `\nNo cookie: ${textoUsoReceita(info.ing)} custa ${brlUn(v * consumoPorCookie(info.ing, false))}.`;
   }
@@ -3131,6 +3176,7 @@ function corrigirPrecoItem(nome){
     saveExtras(itensExtras);
   } else {
     precos[nome] = { tam: String(arred(qtd, 3)), preco: String(arred(pago, 2)), ult: { valor: arred(pago, 2), qtd: arred(qtd, 3) } };
+    if (tamEmb > 0) precos[nome].embF = tamEmb;
     savePrecos(precos);
   }
   render();
@@ -3157,6 +3203,10 @@ function renderComprar(aviso){
         <div style="display:flex; gap:0.5rem;">
           <input id="cp-qtd" type="number" step="0.01" inputmode="decimal" placeholder="Quantidade comprada" style="${CP_INPUT} flex:1;">
           <select id="cp-un" style="${CP_INPUT} width:96px;"></select>
+        </div>
+        <div id="cp-embf-linha" style="display:none;">
+          <div id="cp-embf-rot" style="font-size:0.82rem; opacity:0.8; margin-bottom:0.25rem;"></div>
+          <input id="cp-embf" type="number" step="any" inputmode="decimal" style="${CP_INPUT}">
         </div>
         <input id="cp-valor" type="number" step="0.01" inputmode="decimal" placeholder="Valor pago no total (R$)" style="${CP_INPUT}">
         <input id="cp-data" type="date" value="${hojeISO()}" style="${CP_INPUT}">
@@ -3196,17 +3246,32 @@ function renderComprar(aviso){
   const sel = el.querySelector("#cp-item"), selUn = el.querySelector("#cp-un");
   const qtdEl = el.querySelector("#cp-qtd"), valEl = el.querySelector("#cp-valor");
   const previa = el.querySelector("#cp-previa"), erro = el.querySelector("#cp-erro");
+  const embfEl = el.querySelector("#cp-embf");
 
   function lerForm(){
     const nome = sel.value;
-    const op = opcoesUnidadeCompra(nome).find(o=>o.v === selUn.value);
+    let op = opcoesUnidadeCompra(nome).find(o=>o.v === selUn.value);
+    if (op && op.v === "emb"){ const fx = parseFloat(embfEl.value); if (fx > 0) op = Object.assign({}, op, { f: fx }); }
     const qtdDigitada = parseFloat(qtdEl.value);
     const valor = parseFloat(valEl.value);
     const qtdBase = (op && qtdDigitada > 0) ? qtdDigitada * op.f : NaN;
     return { nome, op, qtdBase, valor: (valor > 0 ? valor : 0) };
   }
+  function atualizarLinhaEmb(){
+    const info = infoItemCompra(sel.value);
+    const emb = info && info.tipo === "ing" ? embDoItem(info.ing) : null;
+    const mostrar = !!emb && selUn.value === "emb";
+    el.querySelector("#cp-embf-linha").style.display = mostrar ? "block" : "none";
+    if (mostrar){
+      el.querySelector("#cp-embf-rot").textContent = info.un === "g"
+        ? "Quantas gramas vêm em cada embalagem? (só mude se for diferente da de sempre)"
+        : `Quantos ${info.ing.nomeUn || "un"}s vêm em cada embalagem? (só mude se for diferente da de sempre)`;
+      embfEl.value = String(emb.f);
+    }
+  }
   function trocouItem(){
     selUn.innerHTML = opcoesUnidadeCompra(sel.value).map(o=>`<option value="${o.v}">${o.t}</option>`).join("");
+    atualizarLinhaEmb();
     atualizarPrevia();
   }
   function atualizarPrevia(){
@@ -3222,10 +3287,10 @@ function renderComprar(aviso){
     const fatorC = porKg ? 1000 : 1, unC = porKg ? "kg" : "un";
     const fmtC = n => porKg ? brl(n * fatorC) : brlUn(n);
     const embI = info.tipo === "ing" ? embDoItem(info.ing) : null;
-    let h = (f.op && f.op.v === "emb" && embI ? `1 embalagem = ${embI.desc}. ` : "") + `Você está comprando <b>${textoQtdEmb(info, f.qtdBase)}</b>. Estoque: ${fmtQtdCompra(info.un, r.estAntes)} → <b>${fmtQtdCompra(info.un, r.estDepois)}</b>.`;
+    let h = (f.op && f.op.v === "emb" && embI ? `1 embalagem = ${descEmb(info.ing, f.op.f)}. ` : "") + `Você está comprando <b>${textoQtdEmb(info, f.qtdBase, fEmb(f))}</b>. Estoque: ${fmtQtdCompra(info.un, r.estAntes)} → <b>${fmtQtdCompra(info.un, r.estDepois)}</b>.`;
     if (r.estAntes < 0) h += `<br><span style="color:var(--wine);">O estoque estava negativo: parte desta compra cobre o que já foi usado.</span>`;
     if (f.valor > 0){
-      h += `<br>Preço desta compra: <b>${precoLegivel(f.nome, f.valor / f.qtdBase)}</b>.`;
+      h += `<br>Preço desta compra: <b>${precoLegivel(f.nome, f.valor / f.qtdBase, fEmb(f))}</b>.`;
       if (info.tipo === "ing" && info.ing.porCookie && !estaPendente(info.ing)){
         h += `<br>No cookie: usa ${textoUsoReceita(info.ing)}, custa <b>${brlUn(r.custoDepois * consumoPorCookie(info.ing, false))}</b> por cookie.`;
       }
@@ -3243,8 +3308,8 @@ function renderComprar(aviso){
     b.addEventListener("click", ()=> corrigirPrecoItem(b.dataset.nome));
   });
   sel.addEventListener("change", trocouItem);
-  [selUn, qtdEl, valEl].forEach(x=> x.addEventListener("input", atualizarPrevia));
-  selUn.addEventListener("change", atualizarPrevia);
+  [selUn, qtdEl, valEl, embfEl].forEach(x=> x.addEventListener("input", atualizarPrevia));
+  selUn.addEventListener("change", ()=>{ atualizarLinhaEmb(); atualizarPrevia(); });
   trocouItem();
 
   el.querySelector("#cp-salvar").addEventListener("click", ()=>{
@@ -3257,11 +3322,12 @@ function renderComprar(aviso){
     const r = calcularCompraItem(f.nome, f.qtdBase, f.valor);
     if (r.custoAntes !== null){
       const razao = (f.valor / f.qtdBase) / r.custoAntes;
-      if ((razao > 2 || razao < 0.5) && !confirm(`Esse valor deu ${precoLegivel(f.nome, f.valor / f.qtdBase)}, e o custo atual é ${precoLegivel(f.nome, r.custoAntes)}. Confere? Registrar mesmo assim?`)) return;
+      if ((razao > 2 || razao < 0.5) && !confirm(`Esse valor deu ${precoLegivel(f.nome, f.valor / f.qtdBase, fEmb(f))}, e o custo atual é ${precoLegivel(f.nome, r.custoAntes)}. Confere? Registrar mesmo assim?`)) return;
     }
-    if (!confirm(`${f.nome}: ${textoQtdEmb(info, f.qtdBase)} por ${brl(f.valor)}.\nIsso dá ${precoLegivel(f.nome, f.valor / f.qtdBase)}.\n\nRegistrar esta compra?`)) return;
+    if (!confirm(`${f.nome}: ${textoQtdEmb(info, f.qtdBase, fEmb(f))} por ${brl(f.valor)}.\nIsso dá ${precoLegivel(f.nome, f.valor / f.qtdBase, fEmb(f))}.\n\nRegistrar esta compra?`)) return;
     const dataISO = el.querySelector("#cp-data").value || hojeISO();
     registrarCompra({ itens:[{nome:f.nome, qtd:f.qtdBase, valor:f.valor}], dataISO, lancarCaixa: el.querySelector("#cp-caixa").checked, origem:"manual" });
+    if (f.op && f.op.v === "emb" && info.tipo === "ing" && precos[f.nome]){ precos[f.nome].embF = f.op.f; savePrecos(precos); }   // lembra o tamanho da embalagem
     const porKg = info.un === "g";
     const custoTxt = porKg ? `${brl(r.custoDepois * 1000)}/kg` : `${brlUn(r.custoDepois)}/un`;
     const caixaTxt = el.querySelector("#cp-caixa").checked ? ` Saída de ${brl(f.valor)} lançada no Caixa.` : "";
