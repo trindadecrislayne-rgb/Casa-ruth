@@ -1022,6 +1022,11 @@ function lerTamEmb(txt, ehUn){
   if (!ehUn && /kg|quilo/.test(t)) n *= 1000;
   return n;
 }
+function pluralUn(t, n){ return n === 1 ? t : (t === "dúzia" ? "dúzias" : (t === "embalagem" ? "embalagens" : t)); }
+function textoDigitado(info, op, qtdDig){
+  if (op.v === "emb") return `${fmtNum(qtdDig)} ${pluralUn("embalagem", qtdDig)} (${info.tipo === "ing" ? descEmb(info.ing, op.f) : fmtNum(op.f)})`;
+  return `${fmtNum(qtdDig)} ${pluralUn(op.t, qtdDig)}`;
+}
 function fEmb(f){ return (f && f.op && f.op.v === "emb") ? f.op.f : undefined; }
 function textoUsoReceita(ing){
   return ing.unidade === "un" ? `${fmtNum(qtdUnEfetiva(ing))} ${ing.nomeUn || "un"}` : `${fmtNum(gramasEfetivas(ing))} g`;
@@ -2945,7 +2950,9 @@ function registrarCompra({itens, dataISO, lancarCaixa, origem}){
   const dados = lista.map(it=>{
     const valor = it.valor > 0 ? it.valor : 0;
     const antes = aplicarCompraItem(it.nome, it.qtd, valor);
-    return { nome: it.nome, qtd: it.qtd, valor, un: infoItemCompra(it.nome).un, antes };
+    const reg = { nome: it.nome, qtd: it.qtd, valor, un: infoItemCompra(it.nome).un, antes };
+    if (it.txt) reg.txt = it.txt;
+    return reg;
   });
   const total = arred(dados.reduce((s,d)=> s + d.valor, 0), 2);
   const compra = { id, dataISO: data, data: isoParaBR(data), itens: dados, total, origem: origem || "manual" };
@@ -3068,15 +3075,24 @@ function textoUltimoDigitado(nome){
   const info = infoItemCompra(nome);
   if (!info) return "";
   const d = precos[nome];
-  let valor = null, qtd = null;
-  if (info.tipo === "ing" && d && d.ult && d.ult.valor > 0 && d.ult.qtd > 0){ valor = d.ult.valor; qtd = d.ult.qtd; }
+  let valor = null, qtd = null, txt = null;
+  if (info.tipo === "ing" && d && d.ult && d.ult.valor > 0 && d.ult.qtd > 0){ valor = d.ult.valor; qtd = d.ult.qtd; txt = d.ult.txt || null; }
   else {
+    let tCompra = -1;
     for (let i = historicoCompras.length - 1; i >= 0; i--){
       const x = (historicoCompras[i].itens || []).find(y=> y.nome === nome && y.valor > 0 && y.qtd > 0);
-      if (x){ valor = x.valor; qtd = x.qtd; break; }
+      if (x){ valor = x.valor; qtd = x.qtd; txt = x.txt || null; tCompra = historicoCompras[i].id; break; }
     }
+    const uc = info.tipo === "extra" ? info.extra.ultCorr : null;
+    if (uc && uc.valor > 0 && uc.qtd > 0 && uc.t > tCompra){ valor = uc.valor; qtd = uc.qtd; txt = uc.txt || null; }
   }
-  return valor === null ? "" : `${brl(valor)} por ${textoQtdEmb(info, qtd)}`;
+  if (valor === null) return "";
+  if (txt) return `${brl(valor)} por ${txt}`;
+  if (info.tipo === "ing" && info.un === "un" && !info.ing.nomeUn && !embDoItem(info.ing) && qtd >= 12 && qtd % 12 === 0){
+    const dz = qtd / 12;
+    return `${brl(valor)} por ${fmtNum(dz)} ${dz === 1 ? "dúzia" : "dúzias"}`;
+  }
+  return `${brl(valor)} por ${textoQtdEmb(info, qtd)}`;
 }
 // Quanto a receita usa do item (por fornada, por cookie ou por unidade do produto). null = não entra em receita.
 function usoNaReceita(nome){
@@ -3087,8 +3103,9 @@ function usoNaReceita(nome){
   const deMassa = massaBase.some(m=>m.n === nome);
   const deSabor = sabores.some(sb=> !sb.extra && (sb.recheio || []).some(i=>i.n === nome));
   const por = deMassa ? "na fornada" : (deSabor ? "por cookie" : "por unidade");
+  const onde = deMassa ? "na fornada" : (deSabor ? "em cada cookie" : "em cada unidade");
   const un = ing.unidade === "un" ? (ing.nomeUn ? ing.nomeUn + (q !== 1 ? "s" : "") : "un") : "g";
-  return { q, txt: `${fmtNum(q)} ${un} ${por}` };
+  return { q, txt: `${fmtNum(q)} ${un} ${por}`, qtdTxt: `${fmtNum(q)} ${un}`, onde };
 }
 // Cartão com o preço de cada item: é aqui que mora o preço (a média é refeita a cada compra)
 function cartaoPrecosItens(){
@@ -3097,19 +3114,25 @@ function cartaoPrecosItens(){
     const info = infoItemCompra(nome);
     if (!info) return "";
     const uso = usoNaReceita(nome);
-    const c = custoAtualUnit(nome), u = ultimoPrecoPago(nome);
+    const c = custoAtualUnit(nome);
     // com receita: mostra o que a quantidade usada custa e, embaixo pequeno, o preço da embalagem
-    const fmt = n => uso ? fmtCusto(n * uso.q) : precoPartes(nome, n).main;
+    // custo médio: resumo "valor pela quantidade que a receita usa"; sem receita, o preço do jeito de sempre
+    const medio = n => {
+      if (uso) return `<b>${fmtCusto(n * uso.q)}</b><br><small style="opacity:.75;">por ${esc(uso.qtdTxt)} (${uso.onde})</small>`;
+      const p = precoPartes(nome, n);
+      return p.main + (p.sub ? `<br><small style="opacity:.75;">${p.sub}</small>` : "");
+    };
+    const digitado = textoUltimoDigitado(nome);
     return `<tr>
       <td>${esc(nome)}</td>
-      <td class="price" style="text-align:right;">${c === null ? `<span style="color:var(--wine);">sem preço</span>` : fmt(c)}</td>
-      <td class="price" style="text-align:right;">${u === null ? "—" : fmt(u)}</td>
+      <td class="price" style="text-align:right;">${c === null ? `<span style="color:var(--wine);">sem preço</span>` : medio(c)}</td>
+      <td class="price" style="text-align:right;">${digitado ? esc(digitado) : "—"}</td>
       <td style="text-align:right;"><button class="btn-sec cp-corrigir" data-nome="${esc(nome)}" type="button" style="padding:0.2rem 0.55rem; font-size:0.78rem;">Corrigir</button></td>
     </tr>`;
   }).join("");
   return `<div class="cartao c7">
     <h2>Preço de cada item</h2>
-    <div class="sub">Cada valor é quanto custa a quantidade que a receita usa daquele ingrediente (na fornada ou em cada cookie). Custo médio: o app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar. Último pago: o último valor que você lançou, numa compra ou em Corrigir.</div>
+    <div class="sub">Custo médio: o valor pela quantidade que a receita usa daquele ingrediente. O app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar. Último pago: o valor que você lançou, numa compra ou em Corrigir.</div>
     <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;"><table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Item</th><th class="price" style="text-align:right;">Custo médio</th><th class="price" style="text-align:right;">Último pago</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
   </div>`;
 }
@@ -3159,7 +3182,7 @@ function corrigirPrecoItem(nome){
     let op = ops.find(o=>o.v === selUn.value);
     if (op && op.v === "emb"){ const fx = parseFloat(q("embf").value); if (fx > 0) op = Object.assign({}, op, { f: fx }); }
     const qt = parseFloat(q("qtd").value), valor = parseFloat(q("valor").value);
-    return { op, qtd: (op && qt > 0) ? qt * op.f : NaN, valor };
+    return { op, qtd: (op && qt > 0) ? qt * op.f : NaN, valor, qtDig: qt };
   }
   function previa(){
     f.querySelector(".editor-erro").textContent = "";
@@ -3189,11 +3212,11 @@ function corrigirPrecoItem(nome){
         !confirm(`Esse valor deu ${precoLegivel(nome, v, tamEmb)}, e antes estava ${precoLegivel(nome, antes)}. Confere? Salvar mesmo assim?`)) return;
     if (info.tipo === "extra"){
       info.extra.precoUnitario = v.toFixed(4);
-      info.extra.ultCorr = { v, t: Date.now() };
+      info.extra.ultCorr = { v, valor: pago, qtd, t: Date.now(), txt: textoDigitado(info, r.op, r.qtDig) };
       saveExtras(itensExtras);
     } else {
       const efAntes = precos[nome] && precos[nome].embF;
-      precos[nome] = { tam: String(arred(qtd, 3)), preco: String(arred(pago, 2)), ult: { valor: arred(pago, 2), qtd: arred(qtd, 3), t: Date.now() } };
+      precos[nome] = { tam: String(arred(qtd, 3)), preco: String(arred(pago, 2)), ult: { valor: arred(pago, 2), qtd: arred(qtd, 3), t: Date.now(), txt: textoDigitado(info, r.op, r.qtDig) } };
       if (tamEmb > 0) precos[nome].embF = tamEmb; else if (efAntes) precos[nome].embF = efAntes;
       savePrecos(precos);
     }
@@ -3275,7 +3298,7 @@ function renderComprar(aviso){
     const qtdDigitada = parseFloat(qtdEl.value);
     const valor = parseFloat(valEl.value);
     const qtdBase = (op && qtdDigitada > 0) ? qtdDigitada * op.f : NaN;
-    return { nome, op, qtdBase, valor: (valor > 0 ? valor : 0) };
+    return { nome, op, qtdBase, valor: (valor > 0 ? valor : 0), qtdDig: qtdDigitada };
   }
   function atualizarLinhaEmb(){
     const info = infoItemCompra(sel.value);
@@ -3346,7 +3369,7 @@ function renderComprar(aviso){
     }
     if (!confirm(`${f.nome}: ${textoQtdEmb(info, f.qtdBase, fEmb(f))} por ${brl(f.valor)}.\nIsso dá ${precoLegivel(f.nome, f.valor / f.qtdBase, fEmb(f))}.\n\nRegistrar esta compra?`)) return;
     const dataISO = el.querySelector("#cp-data").value || hojeISO();
-    registrarCompra({ itens:[{nome:f.nome, qtd:f.qtdBase, valor:f.valor}], dataISO, lancarCaixa: el.querySelector("#cp-caixa").checked, origem:"manual" });
+    registrarCompra({ itens:[{nome:f.nome, qtd:f.qtdBase, valor:f.valor, txt: textoDigitado(info, f.op, f.qtdDig)}], dataISO, lancarCaixa: el.querySelector("#cp-caixa").checked, origem:"manual" });
     if (f.op && f.op.v === "emb" && info.tipo === "ing" && precos[f.nome]){ precos[f.nome].embF = f.op.f; savePrecos(precos); }   // lembra o tamanho da embalagem
     const porKg = info.un === "g";
     const custoTxt = porKg ? `${brl(r.custoDepois * 1000)}/kg` : `${brlUn(r.custoDepois)}/un`;
