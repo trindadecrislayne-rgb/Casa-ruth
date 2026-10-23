@@ -6,48 +6,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Casa Ruth — Receitas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;900&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================================
-MODELO DE LAYOUT (nº 1)  — fonte da verdade do visual. Mudar o visual = mudar o :root abaixo.
-- Intenção: painel quente e limpo, café com leite e caramelo, cartões brancos bem arredondados, números grandes, verde-sálvia para o que é bom. Calmo, fácil de ler de relance.
-- Cores: fundo #F6EFE6 · cartão #FFFDF9 · texto #3A2316 · destaque marrom #7A4A2B (escuro #4A2A1A) · caramelo/linhas #B9835A · positivo sálvia #5F7F4F · negativo terracota #B5523B.
-- Tipografia: títulos Playfair Display (itálico só no nome do app); texto e números Inter. Título de tela 1.4rem, número grande 1.6rem peso 700, texto 0.95rem, legenda 0.7rem em maiúsculas. Números sempre alinhados (tabular).
-- Formas: cartão arredondado 18px, itens de lista 14px, botões e etiquetas em pílula (999px), borda fina caramelo 1px com 35% de força, sombra bem suave, espaços de 8/12/16/24px.
-- Menu: dock flutuante já existente (pode ser movido pelo usuário); no futuro, menu lateral marrom escuro em tela larga. Ícones de linha SVG, sem emojis.
-- Componentes: cartão branco com número grande e legenda pequena em cima; botão principal marrom cheio, secundário só com borda; listas limpas com linha fina; avisos com borda tracejada caramelo; setinha verde/terracota para variação.
-- Tela por tela: Painel = fileira de cartões de números (Receita, Custos, Lucro, Margem) + 1 gráfico + 1 lista (mais vendidos) + resumo de estoque, sem rolar muito. Demais telas: só trocar para cartões e cores, sem mudar a função.
-- Evitar: cores neon, emojis, sombras pesadas, bordas grossas, a mesma informação em mais de um lugar, tabelas com muitas colunas no celular.
-- Status: APLICADO = cores, fontes, arredondamento e sombras em todo o app (só visual). FALTA = Painel em cartões de números, gráficos, menu lateral em tela larga, revisar tela por tela.
-========================================================================== */
+   MODELO DE LAYOUT (nº 1) — Casa Ruth
+   Fonte da verdade do visual. Para mudar cores e medidas, mexa só nas variáveis do :root.
+   - Intenção: painel limpo e aconchegante (referências: dashboards com menu lateral,
+     números grandes no topo, cartões arredondados). Marca Casa Ruth mantida.
+   - Cores (hex): fundo #F6EEDD · cartão #FFFBF2 · texto #2B1B14 · destaque vinho #7A1F2B
+     (escuro #4E1420) · dourado #B08D57 · menu #4E1420 · positivo #3F7D4F · negativo #B3382C
+     · gráficos: vinho #7A1F2B, dourado #B08D57, oliva #6F7F4A, rosé #C98B7A.
+     Modo escuro: valores próprios no :root (menu #140A07, positivo #7CCB92, negativo #F0907F).
+   - Tipografia: títulos e números grandes Playfair Display 700; texto Source Serif 4 400/600.
+     Número grande do cartão 1,55rem (celular 1,3rem); título de cartão 1,02rem; rótulo 0,7rem
+     em maiúsculas com espaço entre letras, dourado; legenda 0,78 a 0,85rem.
+   - Formas: cartão raio 20px, borda 1px dourada a 35%, sombra suave (--shadow); botões em
+     pílula (raio 999px); espaço entre cartões 1rem; recuo interno do cartão 1,1rem 1,2rem.
+   - Menu: tela larga (900px ou mais) = barra lateral fixa de 232px, vinho escuro (#4E1420),
+     logo no topo, itens com ícone + nome, item ativo em degradê dourado com texto vinho.
+     Celular = cabeçalho compacto (logo pequena + nome) e menu flutuante embaixo (como antes).
+   - Componentes: cartão de número (ícone redondo + rótulo + número + detalhe, seta verde/vermelha
+     de variação); cartões de gráfico (linha e área, rosca de custos); ranking com barras;
+     lista com linhas tracejadas; botão principal vinho cheio, secundário vinho contornado.
+   - Grade da tela Hoje: celular = 1 coluna (números em 2x2); tela larga = 12 colunas
+     (números 3+3+3+3; gráfico 8 + rosca 4; três cartões de 4; resumo 6 + atenção 6).
+   - Tela por tela: Hoje, Comprar, Estoque, Vendas, Moldar, Assar, Caixa, Contas, Receitas, Preço e lucro e Config APLICADAS (todas as 11 telas).
+     (largura 760px) ao lado do menu lateral, até serem refeitas uma a uma.
+   - Evitar: desenhos de cookies atrás dos cartões (poluem a leitura; variável
+     --cookies-opacidade controla); emojis; tabelas largas; texto cinza claro demais; mais de 4
+     números grandes no topo; mexer em dados, contas ou chaves casaruth_.
+   - Fundo: cookies flutuando em canvas (#fundo-cookies), variável --fundo-opacidade.
+   - Status: APLICADO = moldura (menu lateral, cabeçalho, fundo) + telas Hoje, Comprar, Estoque, Vendas, Moldar, Assar, Caixa, Contas, Receitas, Preço e lucro e Config.
+     FALTA = nada de layout; resta subir no GitHub.
+   ========================================================================== */
 :root{
-  --cream:#F6EFE6; --cream-2:#EDE2D3; --ink:#3A2316;
-  --wine:#7A4A2B; --wine-deep:#4A2A1A; --gold:#B9835A; --gold-soft:#F0E3D2;
-  --card:#FFFDF9;
-  --pos:#5F7F4F; --neg:#B5523B; --sage:#9DAE8C; --sage-soft:#E6EBDD;
-  --font-texto:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-titulo:'Playfair Display', Georgia, serif;
-  --shadow:0 1px 2px rgba(74,38,22,.05), 0 16px 32px -20px rgba(74,38,22,.22);
-  --radius:18px; --radius-item:14px;
+  --cream:#F6EEDD; --cream-2:#EFE3C9; --ink:#2B1B14;
+  --wine:#7A1F2B; --wine-deep:#4E1420; --gold:#B08D57; --gold-soft:#F1E6CC;
+  --card:#FFFBF2;
+  --shadow:0 1px 2px rgba(78,20,32,.05), 0 20px 40px -18px rgba(78,20,32,.22);
+  --radius:22px;
+  /* modelo de layout nº 1 */
+  --menu:#4E1420; --menu-ink:#F3E4CF; --menu-ativo:linear-gradient(135deg,#B08D57,#D9BC84); --menu-ativo-ink:#3A1019;
+  --ok:#3F7D4F; --neg:#B3382C; --oliva:#6F7F4A;
+  --g1:#7A1F2B; --g2:#B08D57; --g3:#6F7F4A; --g4:#C98B7A;
+  --borda-cartao:rgba(176,141,87,.35); --raio-cartao:20px; --gap:1rem; --largura-menu:232px;
+  --cookies-opacidade:0;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --cream:#1E1510; --cream-2:#271B14; --ink:#F3E8DA; --card:#2B1E16; --wine:#E0A37A; --wine-deep:#E0A37A; --pos:#8FB07C; --neg:#E58B73;
+    --cream:#1C120D; --cream-2:#241811; --ink:#F3E9D2; --card:#2A1C14; --wine:#E28A96; --wine-deep:#E28A96;
+    --menu:#140A07; --menu-ink:#F3E9D2; --menu-ativo-ink:#2A1C14; --ok:#7CCB92; --neg:#F0907F; --oliva:#A6B87A; --g1:#E28A96; --g2:#D1AE78; --g3:#A6B87A; --g4:#D9A494; --borda-cartao:rgba(209,174,120,.3);
   }
 }
 :root[data-theme="dark"]{
-  --cream:#1E1510; --cream-2:#271B14; --ink:#F3E8DA; --card:#2B1E16; --wine:#E0A37A; --wine-deep:#E0A37A; --pos:#8FB07C; --neg:#E58B73;
+  --cream:#1C120D; --cream-2:#241811; --ink:#F3E9D2; --card:#2A1C14; --wine:#E28A96; --wine-deep:#E28A96;
+    --menu:#140A07; --menu-ink:#F3E9D2; --menu-ativo-ink:#2A1C14; --ok:#7CCB92; --neg:#F0907F; --oliva:#A6B87A; --g1:#E28A96; --g2:#D1AE78; --g3:#A6B87A; --g4:#D9A494; --borda-cartao:rgba(209,174,120,.3);
 }
 *{box-sizing:border-box;}
 body{
   margin:0; background:var(--cream); color:var(--ink); position:relative;
-  font-family:var(--font-texto);
+  font-family:'Source Serif 4', serif;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 /* fundo decorativo: cookies desenhados, fixos embaixo, esmaecendo para cima */
 body::before{
   content:""; position:fixed; left:0; right:0; bottom:0; height:min(46vh,380px);
-  pointer-events:none; z-index:0; opacity:.5;
+  pointer-events:none; z-index:0; opacity:var(--cookies-opacidade);
   background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20800%20300%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22cookieFill%22%20cx%3D%2238%25%22%20cy%3D%2230%25%22%20r%3D%2275%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23E3B672%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%23C9893F%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%238A4A1E%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22chipShine%22%20cx%3D%2230%25%22%20cy%3D%2225%25%22%20r%3D%2280%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%236B4430%22%2F%3E%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%233B2416%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23241208%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cellipse%20cx%3D%22120%22%20cy%3D%22257.4%22%20rx%3D%2268%22%20ry%3D%2214%22%20fill%3D%22%233B1A12%22%20opacity%3D%220.18%22%2F%3E%3Cpath%20d%3D%22M%20204.2%2C195.0%20Q%20204.2%2C195.0%20197.5%2C217.8%20Q%20190.9%2C240.5%20171.0%2C251.9%20Q%20151.2%2C263.3%20129.5%2C271.3%20Q%20107.9%2C279.3%2089.3%2C265.6%20Q%2070.8%2C251.8%2058.4%2C234.2%20Q%2046.1%2C216.7%2043.1%2C194.1%20Q%2040.2%2C171.6%2053.8%2C152.9%20Q%2067.4%2C134.2%2088.3%2C127.0%20Q%20109.2%2C119.7%20132.2%2C118.8%20Q%20155.2%2C117.9%20169.2%2C136.1%20Q%20183.2%2C154.4%20193.7%2C174.7%20Z%22%20fill%3D%22url%28%23cookieFill%29%22%2F%3E%3Cellipse%20cx%3D%22173%22%20cy%3D%22191%22%20rx%3D%2213%22%20ry%3D%229%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%2296%22%20cy%3D%22237%22%20rx%3D%229%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22118%22%20cy%3D%22152%22%20rx%3D%2212%22%20ry%3D%228%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22167%22%20cy%3D%22206%22%20rx%3D%228%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22169%22%20cy%3D%22192%22%20rx%3D%2210%22%20ry%3D%227%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cpath%20d%3D%22M%2088.8%2C213.2%20Q%2088.8%2C213.2%2088.5%2C215.7%20Q%2088.2%2C218.1%2085.8%2C217.9%20Q%2083.3%2C217.6%2081.0%2C216.8%20Q%2078.6%2C215.9%2078.9%2C213.4%20Q%2079.3%2C210.8%2081.1%2C209.2%20Q%2083.0%2C207.7%2085.0%2C208.7%20Q%2087.0%2C209.8%2087.9%2C211.5%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%2282.3%22%20cy%3D%22211.0%22%20rx%3D%221.2%22%20ry%3D%220.8%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20118.3%2C232.0%20Q%20118.3%2C232.0%20116.3%2C235.1%20Q%20114.2%2C238.3%20110.9%2C238.5%20Q%20107.6%2C238.8%20104.9%2C237.1%20Q%20102.1%2C235.4%20101.8%2C231.8%20Q%20101.5%2C228.3%20104.4%2C226.2%20Q%20107.4%2C224.2%20110.8%2C224.9%20Q%20114.2%2C225.7%20116.3%2C228.8%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22106.5%22%20cy%3D%22229.0%22%20rx%3D%221.7%22%20ry%3D%221.1%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20143.8%2C179.7%20Q%20143.8%2C179.7%20142.8%2C183.0%20Q%20141.8%2C186.2%20138.3%2C187.0%20Q%20134.8%2C187.9%20133.1%2C185.1%20Q%20131.4%2C182.3%20131.5%2C179.7%20Q%20131.5%2C177.2%20133.4%2C175.7%20Q%20135.4%2C174.1%20138.0%2C174.5%20Q%20140.6%2C174.9%20142.2%2C177.3%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22134.2%22%20cy%3D%22176.9%22%20rx%3D%221.6%22%20ry%3D%221.0%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20155.2%2C235.8%20Q%20155.2%2C235.8%20154.3%2C238.7%20Q%20153.4%2C241.7%20150.3%2C242.0%20Q%20147.2%2C242.3%20143.4%2C241.2%20Q%20139.7%2C240.1%20140.1%2C236.0%20Q%20140.6%2C231.8%20143.7%2C229.7%20Q%20146.8%2C227.6%20150.8%2C227.9%20Q%20154.8%2C228.1%20155.0%2C231.9%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22145.8%22%20cy%3D%22232.4%22%20rx%3D%221.8%22%20ry%3D%221.2%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20125.9%2C162.0%20Q%20125.9%2C162.0%20124.5%2C165.8%20Q%20123.1%2C169.5%20119.0%2C170.5%20Q%20115.0%2C171.4%20112.6%2C168.3%20Q%20110.3%2C165.3%20109.6%2C161.7%20Q%20108.9%2C158.0%20112.0%2C155.9%20Q%20115.2%2C153.8%20118.4%2C155.1%20Q%20121.5%2C156.5%20123.7%2C159.2%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22114.1%22%20cy%3D%22158.6%22%20rx%3D%221.9%22%20ry%3D%221.2%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cellipse%20cx%3D%22330%22%20cy%3D%22299.1%22%20rx%3D%2281%22%20ry%3D%2217%22%20fill%3D%22%233B1A12%22%20opacity%3D%220.18%22%2F%3E%3Cpath%20d%3D%22M%20420.9%2C225.0%20Q%20420.9%2C225.0%20413.9%2C249.7%20Q%20406.9%2C274.4%20388.3%2C293.2%20Q%20369.7%2C312.0%20343.2%2C315.0%20Q%20316.6%2C318.1%20292.6%2C306.9%20Q%20268.6%2C295.8%20255.3%2C273.3%20Q%20241.9%2C250.9%20239.6%2C224.3%20Q%20237.2%2C197.8%20254.5%2C177.8%20Q%20271.8%2C157.8%20293.9%2C143.0%20Q%20316.1%2C128.1%20344.0%2C130.7%20Q%20371.9%2C133.3%20392.7%2C152.3%20Q%20413.5%2C171.4%20417.2%2C198.2%20Z%22%20fill%3D%22url%28%23cookieFill%29%22%2F%3E%3Cellipse%20cx%3D%22351%22%20cy%3D%22196%22%20rx%3D%2210%22%20ry%3D%227%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22302%22%20cy%3D%22194%22%20rx%3D%2211%22%20ry%3D%228%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22389%22%20cy%3D%22211%22%20rx%3D%2214%22%20ry%3D%2210%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22299%22%20cy%3D%22212%22%20rx%3D%2216%22%20ry%3D%2211%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22386%22%20cy%3D%22251%22%20rx%3D%2216%22%20ry%3D%2211%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cpath%20d%3D%22M%20333.5%2C242.1%20Q%20333.5%2C242.1%20332.5%2C246.1%20Q%20331.5%2C250.0%20327.2%2C251.3%20Q%20322.9%2C252.5%20319.8%2C249.4%20Q%20316.6%2C246.3%20315.9%2C241.8%20Q%20315.2%2C237.3%20318.9%2C233.9%20Q%20322.7%2C230.6%20327.2%2C232.3%20Q%20331.8%2C234.0%20332.6%2C238.1%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22321.9%22%20cy%3D%22238.2%22%20rx%3D%222.2%22%20ry%3D%221.4%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20317.0%2C222.8%20Q%20317.0%2C222.8%20316.1%2C225.8%20Q%20315.3%2C228.9%20311.9%2C230.2%20Q%20308.5%2C231.6%20306.8%2C228.5%20Q%20305.1%2C225.4%20304.6%2C222.6%20Q%20304.1%2C219.8%20306.5%2C217.8%20Q%20308.9%2C215.8%20311.9%2C216.6%20Q%20314.9%2C217.3%20315.9%2C220.1%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22307.9%22%20cy%3D%22219.8%22%20rx%3D%221.7%22%20ry%3D%221.1%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20347.7%2C189.2%20Q%20347.7%2C189.2%20346.3%2C192.4%20Q%20344.9%2C195.6%20341.0%2C198.2%20Q%20337.2%2C200.8%20334.6%2C196.9%20Q%20332.1%2C192.9%20331.6%2C189.0%20Q%20331.2%2C185.0%20334.2%2C181.6%20Q%20337.3%2C178.3%20342.1%2C179.3%20Q%20346.8%2C180.4%20347.3%2C184.8%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22336.3%22%20cy%3D%22185.2%22%20rx%3D%222.2%22%20ry%3D%221.4%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20363.5%2C251.9%20Q%20363.5%2C251.9%20362.8%2C254.7%20Q%20362.1%2C257.6%20359.1%2C257.8%20Q%20356.0%2C258.0%20353.2%2C256.7%20Q%20350.3%2C255.3%20350.9%2C252.1%20Q%20351.4%2C248.9%20353.7%2C247.2%20Q%20356.0%2C245.5%20359.2%2C245.5%20Q%20362.5%2C245.6%20363.0%2C248.7%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22355.1%22%20cy%3D%22249.1%22%20rx%3D%221.5%22%20ry%3D%220.9%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20333.7%2C246.6%20Q%20333.7%2C246.6%20332.7%2C250.5%20Q%20331.7%2C254.3%20327.8%2C254.2%20Q%20323.8%2C254.1%20320.9%2C252.1%20Q%20318.0%2C250.2%20317.3%2C246.2%20Q%20316.5%2C242.2%20319.8%2C239.2%20Q%20323.2%2C236.1%20327.7%2C237.2%20Q%20332.2%2C238.3%20332.9%2C242.4%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22322.1%22%20cy%3D%22242.6%22%20rx%3D%222.2%22%20ry%3D%221.4%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20303.2%2C251.7%20Q%20303.2%2C251.7%20302.5%2C255.7%20Q%20301.7%2C259.7%20297.4%2C260.7%20Q%20293.1%2C261.6%20290.9%2C258.3%20Q%20288.8%2C254.9%20288.1%2C251.4%20Q%20287.4%2C247.9%20290.2%2C244.7%20Q%20293.1%2C241.6%20296.9%2C243.3%20Q%20300.7%2C245.0%20302.0%2C248.4%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22292.1%22%20cy%3D%22248.0%22%20rx%3D%222.0%22%20ry%3D%221.3%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20394.4%2C231.8%20Q%20394.4%2C231.8%20391.5%2C234.7%20Q%20388.6%2C237.6%20385.4%2C238.3%20Q%20382.3%2C239.0%20379.6%2C237.1%20Q%20377.0%2C235.1%20376.9%2C231.7%20Q%20376.7%2C228.3%20379.4%2C225.9%20Q%20382.0%2C223.6%20386.1%2C223.7%20Q%20390.2%2C223.8%20392.3%2C227.8%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22380.8%22%20cy%3D%22228.2%22%20rx%3D%222.0%22%20ry%3D%221.3%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cellipse%20cx%3D%22560%22%20cy%3D%22236.3%22%20rx%3D%2272%22%20ry%3D%2215%22%20fill%3D%22%233B1A12%22%20opacity%3D%220.18%22%2F%3E%3Cpath%20d%3D%22M%20647.1%2C170.0%20Q%20647.1%2C170.0%20641.4%2C194.3%20Q%20635.7%2C218.7%20615.3%2C232.6%20Q%20594.9%2C246.5%20571.3%2C251.2%20Q%20547.7%2C255.9%20524.2%2C247.1%20Q%20500.8%2C238.3%20491.7%2C215.5%20Q%20482.5%2C192.7%20480.8%2C169.5%20Q%20479.0%2C146.2%20492.0%2C126.4%20Q%20505.0%2C106.5%20526.4%2C95.7%20Q%20547.8%2C84.9%20571.8%2C88.3%20Q%20595.7%2C91.7%20614.5%2C107.3%20Q%20633.3%2C122.9%20640.2%2C146.4%20Z%22%20fill%3D%22url%28%23cookieFill%29%22%2F%3E%3Cellipse%20cx%3D%22599%22%20cy%3D%22136%22%20rx%3D%2214%22%20ry%3D%2210%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22589%22%20cy%3D%22143%22%20rx%3D%229%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22545%22%20cy%3D%22153%22%20rx%3D%2215%22%20ry%3D%2210%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22551%22%20cy%3D%22180%22%20rx%3D%229%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22512%22%20cy%3D%22149%22%20rx%3D%2215%22%20ry%3D%2210%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cpath%20d%3D%22M%20547.1%2C198.3%20Q%20547.1%2C198.3%20545.6%2C201.6%20Q%20544.1%2C204.9%20540.5%2C205.7%20Q%20537.0%2C206.4%20534.1%2C204.2%20Q%20531.2%2C201.9%20531.2%2C198.3%20Q%20531.3%2C194.6%20534.1%2C192.4%20Q%20537.0%2C190.1%20540.8%2C190.5%20Q%20544.6%2C190.9%20545.9%2C194.6%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22536.0%22%20cy%3D%22195.0%22%20rx%3D%221.8%22%20ry%3D%221.1%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20553.5%2C163.6%20Q%20553.5%2C163.6%20553.0%2C167.1%20Q%20552.5%2C170.6%20548.9%2C170.4%20Q%20545.3%2C170.2%20542.6%2C168.6%20Q%20539.9%2C166.9%20539.8%2C163.5%20Q%20539.7%2C160.1%20542.6%2C158.6%20Q%20545.4%2C157.1%20548.8%2C157.0%20Q%20552.2%2C156.8%20552.9%2C160.2%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22543.9%22%20cy%3D%22160.2%22%20rx%3D%221.8%22%20ry%3D%221.2%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20616.2%2C167.9%20Q%20616.2%2C167.9%20615.4%2C171.8%20Q%20614.7%2C175.7%20610.7%2C175.4%20Q%20606.8%2C175.2%20603.6%2C173.5%20Q%20600.3%2C171.8%20600.9%2C168.2%20Q%20601.5%2C164.6%20603.9%2C161.6%20Q%20606.3%2C158.6%20609.6%2C160.4%20Q%20613.0%2C162.2%20614.6%2C165.1%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22605.4%22%20cy%3D%22164.4%22%20rx%3D%221.9%22%20ry%3D%221.2%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20559.0%2C199.0%20Q%20559.0%2C199.0%20557.9%2C202.5%20Q%20556.8%2C206.0%20553.3%2C205.6%20Q%20549.8%2C205.3%20546.3%2C204.1%20Q%20542.8%2C203.0%20543.5%2C199.3%20Q%20544.1%2C195.5%20546.7%2C192.9%20Q%20549.2%2C190.2%20552.7%2C191.5%20Q%20556.1%2C192.8%20557.6%2C195.9%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22548.5%22%20cy%3D%22195.8%22%20rx%3D%221.7%22%20ry%3D%221.1%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20584.1%2C179.5%20Q%20584.1%2C179.5%20582.3%2C183.8%20Q%20580.4%2C188.0%20575.9%2C188.9%20Q%20571.4%2C189.7%20569.1%2C186.3%20Q%20566.9%2C182.8%20566.4%2C179.3%20Q%20565.9%2C175.8%20568.6%2C172.6%20Q%20571.4%2C169.5%20575.8%2C170.4%20Q%20580.3%2C171.3%20582.2%2C175.4%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22570.4%22%20cy%3D%22175.8%22%20rx%3D%222.1%22%20ry%3D%221.3%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20543.4%2C175.4%20Q%20543.4%2C175.4%20541.7%2C178.8%20Q%20539.9%2C182.2%20536.4%2C182.3%20Q%20532.8%2C182.4%20529.7%2C180.8%20Q%20526.6%2C179.1%20525.8%2C175.0%20Q%20525.0%2C170.8%20528.5%2C167.7%20Q%20532.0%2C164.6%20535.9%2C166.7%20Q%20539.7%2C168.7%20541.6%2C172.0%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22531.2%22%20cy%3D%22171.6%22%20rx%3D%222.1%22%20ry%3D%221.3%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cellipse%20cx%3D%22730%22%20cy%3D%22283.04%22%20rx%3D%2258%22%20ry%3D%2212%22%20fill%3D%22%233B1A12%22%20opacity%3D%220.18%22%2F%3E%3Cpath%20d%3D%22M%20800.5%2C230.0%20Q%20800.5%2C230.0%20793.9%2C248.4%20Q%20787.4%2C266.9%20773.1%2C279.9%20Q%20758.8%2C293.0%20739.4%2C296.4%20Q%20720.0%2C299.9%20703.8%2C289.4%20Q%20687.6%2C279.0%20676.1%2C264.1%20Q%20664.7%2C249.2%20662.8%2C229.4%20Q%20660.8%2C209.7%20673.5%2C194.5%20Q%20686.1%2C179.4%20703.1%2C169.8%20Q%20720.0%2C160.2%20738.3%2C165.9%20Q%20756.7%2C171.6%20772.6%2C182.0%20Q%20788.6%2C192.4%20794.6%2C211.2%20Z%22%20fill%3D%22url%28%23cookieFill%29%22%2F%3E%3Cellipse%20cx%3D%22694%22%20cy%3D%22260%22%20rx%3D%229%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22719%22%20cy%3D%22231%22%20rx%3D%229%22%20ry%3D%226%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22717%22%20cy%3D%22197%22%20rx%3D%229%22%20ry%3D%227%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22755%22%20cy%3D%22242%22%20rx%3D%2211%22%20ry%3D%228%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cellipse%20cx%3D%22714%22%20cy%3D%22239%22%20rx%3D%2211%22%20ry%3D%228%22%20fill%3D%22%238A4A1E%22%20opacity%3D%220.25%22%2F%3E%3Cpath%20d%3D%22M%20739.8%2C187.5%20Q%20739.8%2C187.5%20738.3%2C190.2%20Q%20736.8%2C192.9%20734.0%2C193.1%20Q%20731.1%2C193.3%20728.8%2C191.9%20Q%20726.4%2C190.4%20726.3%2C187.5%20Q%20726.1%2C184.5%20728.6%2C182.9%20Q%20731.0%2C181.3%20733.9%2C181.6%20Q%20736.9%2C182.0%20738.3%2C184.8%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22729.9%22%20cy%3D%22184.6%22%20rx%3D%221.6%22%20ry%3D%221.0%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20734.7%2C216.9%20Q%20734.7%2C216.9%20733.4%2C220.1%20Q%20732.2%2C223.3%20728.9%2C223.5%20Q%20725.6%2C223.7%20722.7%2C222.1%20Q%20719.8%2C220.5%20720.3%2C217.2%20Q%20720.8%2C213.9%20723.1%2C211.6%20Q%20725.4%2C209.4%20728.0%2C211.0%20Q%20730.5%2C212.7%20732.6%2C214.8%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22724.8%22%20cy%3D%22214.2%22%20rx%3D%221.5%22%20ry%3D%220.9%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20783.3%2C230.8%20Q%20783.3%2C230.8%20781.9%2C233.2%20Q%20780.5%2C235.5%20777.7%2C237.5%20Q%20774.8%2C239.5%20772.2%2C236.9%20Q%20769.6%2C234.3%20770.2%2C231.1%20Q%20770.8%2C228.0%20772.8%2C225.1%20Q%20774.8%2C222.2%20777.8%2C224.1%20Q%20780.7%2C226.0%20782.0%2C228.4%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22774.2%22%20cy%3D%22227.9%22%20rx%3D%221.6%22%20ry%3D%221.0%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20759.3%2C255.3%20Q%20759.3%2C255.3%20758.0%2C258.3%20Q%20756.7%2C261.2%20753.7%2C261.0%20Q%20750.7%2C260.8%20748.1%2C259.6%20Q%20745.6%2C258.4%20745.4%2C255.2%20Q%20745.3%2C252.1%20747.9%2C250.4%20Q%20750.5%2C248.6%20753.0%2C249.8%20Q%20755.5%2C250.9%20757.4%2C253.1%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22749.6%22%20cy%3D%22252.6%22%20rx%3D%221.5%22%20ry%3D%221.0%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20737.1%2C189.9%20Q%20737.1%2C189.9%20736.2%2C193.0%20Q%20735.4%2C196.0%20732.1%2C196.9%20Q%20728.8%2C197.8%20726.8%2C195.3%20Q%20724.7%2C192.8%20723.6%2C189.4%20Q%20722.5%2C186.0%20725.6%2C183.9%20Q%20728.7%2C181.8%20731.8%2C183.2%20Q%20734.8%2C184.7%20735.9%2C187.3%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22728.0%22%20cy%3D%22187.0%22%20rx%3D%221.6%22%20ry%3D%221.0%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20747.2%2C259.8%20Q%20747.2%2C259.8%20746.6%2C262.4%20Q%20746.1%2C265.0%20743.2%2C266.0%20Q%20740.3%2C267.1%20738.4%2C264.7%20Q%20736.5%2C262.4%20736.7%2C259.9%20Q%20737.0%2C257.4%20738.7%2C255.3%20Q%20740.4%2C253.2%20743.3%2C253.7%20Q%20746.3%2C254.3%20746.7%2C257.1%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22739.7%22%20cy%3D%22257.3%22%20rx%3D%221.4%22%20ry%3D%220.9%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M%20762.7%2C232.7%20Q%20762.7%2C232.7%20761.2%2C234.9%20Q%20759.7%2C237.0%20757.4%2C237.4%20Q%20755.1%2C237.9%20753.1%2C236.6%20Q%20751.0%2C235.3%20751.3%2C232.8%20Q%20751.5%2C230.4%20753.1%2C228.2%20Q%20754.8%2C226.0%20757.3%2C227.2%20Q%20759.8%2C228.4%20761.2%2C230.5%20Z%22%20fill%3D%22url%28%23chipShine%29%22%2F%3E%3Cellipse%20cx%3D%22754.2%22%20cy%3D%22230.3%22%20rx%3D%221.3%22%20ry%3D%220.9%22%20fill%3D%22%23B08D57%22%20opacity%3D%220.5%22%2F%3E%3C%2Fsvg%3E") no-repeat center bottom/auto 100%;
   -webkit-mask-image:linear-gradient(to top,#000 20%,transparent 100%);
   mask-image:linear-gradient(to top,#000 20%,transparent 100%);
@@ -56,10 +80,15 @@ body::after{
   content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
   background:radial-gradient(900px 420px at 20% -8%, rgba(255,255,255,.35), transparent 70%);
 }
+/* fundo interativo: cookies flutuando devagar; fogem de leve do dedo/mouse. Só aparece nas folgas entre os cartões. */
+#fundo-cookies{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:var(--fundo-opacidade,.6);}
+:root{--fundo-opacidade:.6;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fundo-opacidade:.32;}}
+:root[data-theme="dark"]{--fundo-opacidade:.32;}
 header, main, nav.tabs, footer{position:relative; z-index:1;}
 header{
   text-align:center; max-width:620px; margin:14px auto 0; padding:14px 18px;
-  border-radius:999px; border:1px solid rgba(185,131,90,.5);
+  border-radius:999px; border:1px solid rgba(176,141,87,.5);
   background:color-mix(in srgb, var(--card) 80%, transparent);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   box-shadow:var(--shadow);
@@ -82,7 +111,7 @@ h1{
 main{max-width:720px; margin:0 auto; padding:1.3rem 1rem 3rem;}
 .recipe{
   background:color-mix(in srgb, var(--card) 96%, transparent); border-radius:var(--radius); padding:1.5rem 1.5rem 1.7rem;
-  margin-bottom:1.1rem; border:1px solid rgba(185,131,90,.45); box-shadow:var(--shadow);
+  margin-bottom:1.1rem; border:1px solid rgba(176,141,87,.45); box-shadow:var(--shadow);
 }
 .recipe h2{
   font-family:'Playfair Display',serif; font-weight:700; margin:0 0 0.2rem; font-size:1.4rem; color:var(--wine);
@@ -97,10 +126,10 @@ table tbody{
 }
 table tr{
   display:flex; flex-direction:column; gap:0.45rem; min-width:0;
-  padding:0.8rem 0.95rem; border-radius:var(--radius-item);
-  border:1px solid rgba(185,131,90,.4);
+  padding:0.8rem 0.95rem; border-radius:16px;
+  border:1px solid rgba(176,141,87,.4);
   background:color-mix(in srgb, var(--cream-2) 55%, var(--card));
-  box-shadow:0 1px 2px rgba(74,38,22,.05), 0 10px 20px -14px rgba(74,38,22,.25);
+  box-shadow:0 1px 2px rgba(78,20,32,.05), 0 10px 20px -14px rgba(78,20,32,.25);
 }
 table td{
   display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.2rem 0.6rem;
@@ -128,9 +157,9 @@ table.tabela-real{display:table; border-collapse:collapse;}
 table.tabela-real thead{display:table-header-group;}
 table.tabela-real tbody{display:table-row-group;}
 table.tabela-real tr{display:table-row; padding:0; border:none; border-radius:0; background:none; box-shadow:none;}
-table.tabela-real th{padding:0.3rem 0.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); text-align:left; border-bottom:1px solid rgba(185,131,90,.5);}
+table.tabela-real th{padding:0.3rem 0.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); text-align:left; border-bottom:1px solid rgba(176,141,87,.5);}
 table.tabela-real th.qty, table.tabela-real th.price{text-align:right;}
-table.tabela-real td{display:table-cell; padding:0.5rem 0.4rem; text-align:right; vertical-align:middle; font-size:0.88rem; border-bottom:1px solid rgba(185,131,90,.25);}
+table.tabela-real td{display:table-cell; padding:0.5rem 0.4rem; text-align:right; vertical-align:middle; font-size:0.88rem; border-bottom:1px solid rgba(176,141,87,.25);}
 table.tabela-real td:first-child{text-align:left; font-family:inherit; font-weight:600; font-size:0.9rem; color:var(--ink);}
 table.tabela-real td[data-label]::before{content:none;}
 table.tabela-real tr:last-child td{border-bottom:none;}
@@ -163,7 +192,7 @@ nav.tabs{
   display:flex; gap:0.2rem;
   background:color-mix(in srgb, var(--card) 94%, transparent);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  border:1px solid rgba(185,131,90,.5); box-shadow:var(--shadow);
+  border:1px solid rgba(176,141,87,.5); box-shadow:var(--shadow);
   border-radius:20px; padding:0.4rem; overflow:auto; max-height:80vh;
   transition:all .2s ease;
 }
@@ -191,7 +220,7 @@ nav.tabs button .icon{font-size:1.15rem; line-height:1;}
 nav.tabs button .icon svg, #sidebar-handle svg, #sidebar-toggle svg{display:block;}
 #sidebar-handle, #sidebar-toggle{display:flex; align-items:center; justify-content:center;}
 nav.tabs button .label{font-size:0.64rem; line-height:1.05;}
-nav.tabs button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream); box-shadow:0 4px 12px -4px rgba(74,38,22,.6);}
+nav.tabs button.active{background:var(--wine-deep); border-color:var(--wine-deep); color:var(--cream); box-shadow:0 4px 12px -4px rgba(78,20,32,.6);}
 
 /* em cima/embaixo: ícone em cima, nome embaixo */
 nav.tabs.pos-bottom button, nav.tabs.pos-top button{flex-direction:column; align-items:center; gap:0.12rem; padding:0.4rem 0.35rem; min-width:46px;}
@@ -209,7 +238,7 @@ nav.tabs.free{
   right:auto !important; bottom:auto !important; transform:none !important;
 }
 nav.tabs.free{width:max-content;}
-nav.tabs.dragging{transition:none !important; cursor:grabbing; box-shadow:0 18px 40px -10px rgba(74,38,22,.45);}
+nav.tabs.dragging{transition:none !important; cursor:grabbing; box-shadow:0 18px 40px -10px rgba(78,20,32,.45);}
 nav.tabs.dragging #sidebar-handle{cursor:grabbing;}
 #sidebar-toggle{
   font-family:inherit; border:none; background:transparent; color:var(--wine);
@@ -235,7 +264,7 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .contas-grid{display:flex; flex-direction:column; gap:0;}
 .conta-card{
   display:flex; flex-direction:column; gap:0.5rem; min-width:0; padding:0.85rem 0.1rem;
-  border-bottom:1px solid rgba(185,131,90,.32);
+  border-bottom:1px solid rgba(176,141,87,.32);
 }
 .conta-card:last-child{border-bottom:none;}
 .conta-esq{display:flex; flex-direction:column; gap:0.3rem; min-width:0; flex:1;}
@@ -244,14 +273,14 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .conta-valor-box .cfg-mini{width:92px; font-size:1.05rem; font-weight:700;}
 /* Movimentos do Caixa: lista de extrato, nome à esquerda e valor no canto oposto */
 .mov-lista{display:flex; flex-direction:column; margin-top:0.4rem;}
-.mov-row{display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; padding:0.75rem 0.1rem; border-bottom:1px solid rgba(185,131,90,.32);}
+.mov-row{display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; padding:0.75rem 0.1rem; border-bottom:1px solid rgba(176,141,87,.32);}
 .mov-row:last-child{border-bottom:none;}
 .mov-esq{min-width:0; flex:1;}
 .mov-desc{font-weight:600; font-size:0.98rem; line-height:1.3; overflow-wrap:anywhere;}
 .mov-sub{font-size:0.78rem; opacity:0.7; margin-top:0.15rem;}
 .mov-dir{display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem; flex-shrink:0;}
 .mov-valor{font-family:'Playfair Display',serif; font-weight:700; font-size:1.08rem; font-variant-numeric:tabular-nums; white-space:nowrap;}
-.mov-valor.entrada{color:#5F7F4F;}
+.mov-valor.entrada{color:#3F7D4F;}
 .mov-valor.saida{color:var(--wine);}
 .mov-ex{border:none; background:none; padding:0; font-family:inherit; font-size:0.74rem; color:var(--wine); opacity:0.7; text-decoration:underline; cursor:pointer;}
 .mov-vazio{opacity:0.6; font-size:0.9rem; padding:0.6rem 0;}
@@ -271,7 +300,7 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .conta-topo{display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;}
 .conta-nome{font-family:'Playfair Display',serif; font-weight:700; color:var(--wine); font-size:1rem;}
 .selo{font-size:0.62rem; letter-spacing:0.04em; text-transform:uppercase; font-weight:700; padding:0.18rem 0.5rem; border-radius:999px; white-space:nowrap;}
-.selo-ok{background:#5F7F4F; color:#fff;}
+.selo-ok{background:#3F7D4F; color:#fff;}
 .selo-pend{border:1px solid var(--gold); color:var(--gold);}
 .selo-hoje{background:var(--gold); color:#2B1B14;}
 .selo-atraso{background:var(--wine); color:var(--cream);}
@@ -287,8 +316,8 @@ input[type="text"], input[type="number"], input[type="date"], select, textarea{
 .btn-pri, .btn-sec{border-radius:999px; padding:0.45rem 0.9rem; cursor:pointer; font-family:inherit; font-size:0.85rem;}
 .btn-pri{border:1px solid var(--wine); background:var(--wine); color:var(--cream);}
 .btn-sec{border:1px solid var(--wine); background:transparent; color:var(--wine);}
-.barra{height:8px; border-radius:999px; background:rgba(185,131,90,.25); overflow:hidden; margin-top:0.7rem;}
-.barra > i{display:block; height:100%; background:#5F7F4F; transition:width .3s ease;}
+.barra{height:8px; border-radius:999px; background:rgba(176,141,87,.25); overflow:hidden; margin-top:0.7rem;}
+.barra > i{display:block; height:100%; background:#3F7D4F; transition:width .3s ease;}
 .mes-nav{display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-bottom:0.9rem;}
 .mes-nav .titulo{font-family:'Playfair Display',serif; font-weight:700; font-size:1.15rem; color:var(--wine); text-transform:capitalize; text-align:center; flex:1;}
 .campo-contas{padding:0.5rem 0.6rem; border-radius:12px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;}
@@ -318,20 +347,102 @@ table.tabela-compacta td.acao{position:absolute; top:0.4rem; right:0.45rem;}
 #auth-msg{margin-top:.9rem;font-size:.88rem;min-height:1.2em;text-align:center;}
 #auth-msg.erro{color:var(--wine);font-weight:600;}
 #sync-status{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;z-index:60;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--gold);background:var(--card);color:var(--ink);font:inherit;font-size:.78rem;cursor:default;box-shadow:var(--shadow);}
-#sync-status.ok .ico{color:#5F7F4F;font-weight:700;}
+#sync-status.ok .ico{color:#3a8f4d;font-weight:700;}
 @keyframes giro{to{transform:rotate(360deg)}}
 #sync-status .giro{display:inline-block;animation:giro 1s linear infinite;}
 @media (prefers-reduced-motion:reduce){#sync-status .giro{animation:none}}
 #sync-status.erro{border-color:var(--wine);color:var(--wine);font-weight:700;cursor:pointer;}
 #btn-sair{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:60;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--gold);background:var(--card);color:var(--ink);font:inherit;font-size:.82rem;cursor:pointer;box-shadow:var(--shadow);}
-/* ---- Ajustes do MODELO DE LAYOUT (nº 1) ---- */
-body{font-size:0.95rem; line-height:1.45;}
-.mov-valor, .summary .value, .conta-valor-box{font-variant-numeric:tabular-nums;}
-.mov-valor.saida{color:var(--neg);}
-.recipe h2, .conta-nome, .mes-nav .titulo{font-family:var(--font-titulo);}
+
+/* ===== MODELO DE LAYOUT nº 1: componentes novos (tela Hoje) ===== */
+.p-grade{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap); max-width:1240px; margin:0 auto;}
+.p-grade > *{min-width:0;}
+.p-grade .recipe{margin-bottom:0;}
+.p-topo{grid-column:1/-1; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.8rem;}
+.p-topo h2{font-family:'Playfair Display',serif; font-size:1.55rem; margin:0; color:var(--wine-deep); line-height:1.1;}
+.p-data{font-size:.85rem; opacity:.7; margin-top:.15rem;}
+.p-estado{display:inline-flex; align-items:center; gap:.5rem; font-size:.82rem; padding:.28rem .8rem; border-radius:999px; background:var(--card); border:1px solid var(--borda-cartao); margin-top:.45rem;}
+.p-estado i{width:10px; height:10px; border-radius:50%; display:inline-block; flex:0 0 auto;}
+.p-atalhos{display:flex; flex-wrap:wrap; gap:.5rem;}
+.p-atalhos button{padding:.55rem 1.1rem;}
+.cartao{grid-column:1/-1; background:var(--card); border:1px solid var(--borda-cartao); border-radius:var(--raio-cartao); box-shadow:var(--shadow); padding:1.1rem 1.2rem;}
+.cartao h2, .cartao h3{font-family:'Playfair Display',serif; font-size:1.02rem; font-weight:700; margin:0 0 .15rem; color:var(--wine);}
+.cartao .sub{font-size:.78rem; opacity:.7; margin-bottom:.7rem; line-height:1.35;}
+.kpi{grid-column:span 1; display:flex; flex-direction:column; gap:.5rem; align-items:flex-start; padding:.95rem 1rem;}
+.kpi .ic{width:36px; height:36px; border-radius:50%; background:var(--gold-soft); color:var(--wine); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.kpi .ic svg{display:block;}
+.kpi .rot{font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--gold); font-weight:700;}
+.kpi .num{font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; line-height:1.15; color:var(--ink); margin-top:.1rem; overflow-wrap:anywhere;}
+.kpi .num small{font-size:.8rem; font-weight:600; opacity:.7;}
+.kpi .det{font-size:.76rem; opacity:.85; line-height:1.35; margin-top:.2rem;}
+.sobe, .desce{display:inline-flex; align-items:center; gap:.2rem; font-weight:700;}
+.sobe{color:var(--ok);} .desce{color:var(--neg);}
+.desce svg{transform:rotate(180deg);}
+.neg{color:var(--neg);}
+.linha-val{display:flex; justify-content:space-between; gap:.6rem; padding:.42rem 0; border-bottom:1px dashed var(--borda-cartao); font-size:.9rem;}
+.linha-val:last-of-type{border-bottom:0;}
+.linha-val.total{font-weight:700; border-top:2px solid var(--wine); border-bottom:0; margin-top:.3rem; padding-top:.6rem;}
+.rank{display:grid; grid-template-columns:minmax(78px,1fr) 1.6fr auto; gap:.6rem; align-items:center; font-size:.88rem; margin:.55rem 0;}
+.rank .bar{height:10px; border-radius:999px; background:rgba(176,141,87,.2); overflow:hidden;}
+.rank .bar i{display:block; height:100%; background:var(--oliva); border-radius:999px;}
+.rank b{font-weight:600; white-space:nowrap;}
+.leg{display:flex; align-items:center; gap:.5rem; font-size:.84rem; margin:.32rem 0;}
+.leg i{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
+.leg b{margin-left:auto; font-weight:600; white-space:nowrap;}
+.rosca-caixa{display:flex; gap:1rem; align-items:center; flex-wrap:wrap;}
+.rosca-caixa svg{width:130px; height:130px; flex:0 0 auto;}
+.grafico svg{width:100%; height:auto; display:block;}
+.vazio-msg{font-size:.88rem; opacity:.65; padding:.6rem 0;}
+.lista-simples{margin:.3rem 0 .2rem; padding-left:1.1rem; font-size:.9rem; line-height:1.5;}
+.pronto-linha{display:flex; justify-content:space-between; gap:.6rem; align-items:baseline; padding:.4rem 0; border-bottom:1px dashed var(--borda-cartao); font-size:.9rem;}
+.pronto-linha span{font-size:.78rem; opacity:.7;}
+.cartao .acoes{margin-top:.7rem;}
+
+/* cartões de número largos (Vendas): no celular ocupam a linha toda */
+.kpi.k4{grid-column:1/-1; flex-direction:row; align-items:center;}
+
+/* ---- Celular (em pé): cabeçalho compacto e espaço para o menu de baixo ---- */
+@media (max-width:899px){
+  header{max-width:none; margin:50px 12px 0; padding:.55rem .9rem; border-radius:18px; display:grid; grid-template-columns:auto 1fr; column-gap:.75rem; align-items:center; text-align:left;}
+  header .badge{grid-row:1 / span 2; width:42px; height:42px; margin:0;}
+  header .eyebrow{display:none;}
+  header h1{font-size:1.45rem; grid-column:2;}
+  header .since{grid-column:2; margin:0; font-size:.74rem;}
+  main{padding:1rem .8rem 120px;}
+}
+
+/* ---- Tela larga (900px ou mais): menu lateral fixo + grade de 12 colunas ---- */
+@media (min-width:900px){
+  header{position:fixed; left:0; top:0; width:var(--largura-menu); height:178px; max-width:none; margin:0; padding:1.3rem 1rem 1rem; border-radius:0; border:0; background:var(--menu); backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none; z-index:71;}
+  header h1{color:var(--menu-ink);}
+  header .eyebrow{font-size:.58rem; letter-spacing:.16em;}
+  header .eyebrow::before, header .eyebrow::after{display:none;}
+  nav#sidebar{position:fixed !important; left:0 !important; top:178px !important; bottom:0 !important; right:auto !important; transform:none !important; width:var(--largura-menu) !important; max-width:none !important; max-height:none !important; flex-direction:column !important; align-items:stretch !important; gap:.3rem; padding:.4rem .8rem 1rem !important; border-radius:0 !important; border:0 !important; background:var(--menu) !important; box-shadow:none !important; overflow-y:auto; backdrop-filter:none; -webkit-backdrop-filter:none;}
+  nav#sidebar #sidebar-handle{display:none !important;}
+  nav#sidebar button{flex-direction:row !important; align-items:center !important; justify-content:flex-start; gap:.75rem !important; padding:.7rem .9rem !important; border-radius:14px; color:var(--menu-ink); min-width:0 !important; width:100%;}
+  nav#sidebar button .label{font-size:.95rem;}
+  nav#sidebar button:hover{background:rgba(255,255,255,.08);}
+  nav#sidebar button.active{background:var(--menu-ativo); color:var(--menu-ativo-ink); border-color:transparent; box-shadow:0 6px 16px -8px rgba(0,0,0,.6);}
+  main{margin-left:var(--largura-menu); max-width:none; padding:1.6rem 2rem 3rem;}
+  main > .view:not(#view-painel):not(#view-comprar):not(#view-estoque):not(#view-vendas):not(#view-cookies):not(#view-producao):not(#view-caixa):not(#view-contas):not(#view-receitas):not(#view-preco):not(#view-config){max-width:760px; margin-left:auto; margin-right:auto;}
+  #subnav{max-width:760px; margin-left:auto; margin-right:auto;}
+  #view-comprar, #view-estoque, #view-vendas, #view-cookies, #view-producao, #view-caixa, #view-contas, #view-receitas, #view-preco, #view-config{max-width:1240px; margin-left:auto; margin-right:auto;}
+  body[data-tela="comprar"] #subnav, body[data-tela="estoque"] #subnav, body[data-tela="cookies"] #subnav, body[data-tela="producao"] #subnav, body[data-tela="caixa"] #subnav, body[data-tela="contas"] #subnav, body[data-tela="receitas"] #subnav, body[data-tela="preco"] #subnav, body[data-tela="config"] #subnav{max-width:1240px;}
+  .kpi.k4{grid-column:span 4;}
+  .cartao.c5{grid-column:span 5;} .cartao.c7{grid-column:span 7;} .cartao.span2{grid-row:span 2;}
+  footer{margin-left:var(--largura-menu);}
+  #sync-status{left:calc(var(--largura-menu) + 14px);}
+  .p-grade{grid-template-columns:repeat(12,minmax(0,1fr));}
+  .kpi{grid-column:span 3; flex-direction:row; align-items:flex-start; gap:.8rem; padding:1.1rem 1.2rem;}
+  .kpi .ic{width:42px; height:42px;}
+  .kpi .num{font-size:1.55rem;}
+  .kpi .det{font-size:.78rem;}
+  .cartao.c4{grid-column:span 4;} .cartao.c6{grid-column:span 6;} .cartao.c8{grid-column:span 8;} .cartao.c12{grid-column:1/-1;}
+}
 </style>
 </head>
 <body>
+<canvas id="fundo-cookies" aria-hidden="true"></canvas>
 <div id="auth" role="dialog" aria-modal="true" aria-label="Entrar na Casa Ruth">
   <form class="auth-card" id="auth-form" autocomplete="on">
     <h2>Casa Ruth</h2>
@@ -441,6 +552,37 @@ const sabores = [
   { id:"croc", nome:"Croc Ruth", recheio:[{n:"Ovomaltine", g:30, unidade:"kg", porCookie:true, tamTipico:370}] },
 ];
 
+// ---- Produtos novos do cardápio (ex.: marmita de cookie) — cadastrados pelo próprio app ----
+const PRODUTOS_KEY = "casaruth_produtos_extras";
+function loadProdutosExtras(){
+  try{ const l = JSON.parse(localStorage.getItem(PRODUTOS_KEY) || "[]"); return Array.isArray(l) ? l : []; }
+  catch(e){ return []; }
+}
+function saveProdutosExtras(l){ try{ localStorage.setItem(PRODUTOS_KEY, JSON.stringify(l)); }catch(e){} marcarAlterado(); }
+let produtosExtras = loadProdutosExtras();
+const RECEITA_EXTRA_KEY = "casaruth_receita_extra";
+function loadReceitaExtra(){
+  try{ const o = JSON.parse(localStorage.getItem(RECEITA_EXTRA_KEY) || "{}"); return (o && typeof o === "object" && !Array.isArray(o)) ? o : {}; }
+  catch(e){ return {}; }
+}
+function saveReceitaExtra(o){ try{ localStorage.setItem(RECEITA_EXTRA_KEY, JSON.stringify(o)); }catch(e){} marcarAlterado(); }
+let receitaExtra = loadReceitaExtra();
+function sincronizarProdutosExtras(){
+  // sabores de sempre: receita original + ingredientes a mais cadastrados
+  sabores.forEach(sb=>{
+    if (sb.extra) return;
+    if (!sb.recheioBase) sb.recheioBase = sb.recheio.slice();
+    sb.recheio = sb.recheioBase.concat(receitaExtra[sb.id] || []);
+  });
+  for (let i = sabores.length - 1; i >= 0; i--) if (sabores[i].extra) sabores.splice(i, 1);
+  produtosExtras.forEach(p=>{
+    p.extra = true; p.recheio = p.recheio || []; p.emb = p.emb || [];
+    sabores.push(p);
+    NOME_SABOR[p.id] = p.nome;
+  });
+}
+function nomesEmbalagemDeProdutos(){ return produtosExtras.flatMap(p=> (p.emb || []).map(e=>e.nome)); }
+
 const STORAGE_KEY = "casaruth_precos";
 function loadPrecos(){
   try{
@@ -508,13 +650,174 @@ function custoMassaBase(){
   return { custo, faltando };
 }
 
+// ---- Cadastro de produtos novos (ex.: marmita de cookie) ----
+function novoProdVazio(msg){ return { editId:null, nome:"", massaQtd:"1", preco:"", ing:[], emb:[], msg:msg || "" }; }
+let novoProd = novoProdVazio();
+function produtoTemMovimento(id){
+  const marca = `"${id}"`;
+  const usado = [historicoMoldados, historicoVendas, historicoProducao, historicoCaixa, combos].some(l=> JSON.stringify(l || []).includes(marca));
+  return usado || saldoDe("assados", id) !== 0 || saldoDe("congelados", id) !== 0;
+}
+function montarIngProprio(nome, q, u){
+  const ex = todosIngredientesUnicos().find(i=>i.n === nome);
+  if (u === "un" || (ex && ex.unidade === "un")) return { n:nome, unidade:"un", qtd:q, porCookie:true, proprio:true };
+  return { n:nome, g:q, unidade:"kg", porCookie:true, proprio:true, tamTipico:(ex && ex.tamTipico) || 1000 };
+}
+function textoQtdIng(i){ return i.unidade === "un" ? (i.qtd + " un") : (i.g + " g"); }
+function renderProdutosNovos(grade){
+  // um cartão para cada produto já cadastrado
+  produtosExtras.forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "cartao c6";
+    const preco = parseFloat(precosVenda[p.id]);
+    const linhasIng = p.recheio.map(i=>`<tr><td>${esc(i.n)}</td><td class="qty">${textoQtdIng(i)}</td></tr>`).join("");
+    const linhasEmb = p.emb.map(e=>`<tr><td>${esc(e.nome)}</td><td class="qty">${esc(String(e.qtd))} un</td></tr>`).join("");
+    const pode = !produtoTemMovimento(p.id);
+    div.innerHTML = `
+      <h2>${esc(p.nome)}</h2>
+      <div class="sub">Usa a massa de ${p.massaQtd > 0 ? p.massaQtd : 1} cookie(s) em cada unidade${!isNaN(preco) ? " · venda " + brl(preco) : " · falta o preço de venda"}</div>
+      <table>${tableHead()}<tbody>${linhasIng || `<tr><td colspan="2" style="opacity:.7;">Sem ingrediente a mais.</td></tr>`}</tbody></table>
+      <div class="sub" style="margin-top:.7rem;">Embalagem de cada unidade</div>
+      <table><tbody>${linhasEmb || `<tr><td style="opacity:.7;">Usa a embalagem padrão dos cookies.</td></tr>`}</tbody></table>
+      <div class="acoes" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-sec" data-edit-prod="${esc(p.id)}" type="button">Editar produto</button>
+        ${pode
+          ? `<button class="btn-sec" data-del-prod="${esc(p.id)}" type="button">Excluir produto</button>`
+          : `<span style="font-size:.78rem; opacity:.65;">Já tem moldagem, venda ou estoque: não dá para excluir.</span>`}
+      </div>
+    `;
+    grade.appendChild(div);
+  });
+
+  // formulário para adicionar ou editar
+  const editando = !!novoProd.editId;
+  const f = document.createElement("div");
+  f.className = "cartao c12";
+  f.id = "np-form";
+  const inp = CK_INPUT + " width:100%; box-sizing:border-box;";
+  const nIn = CK_INPUT + " width:84px;";
+  f.innerHTML = `
+    <h2>${editando ? "Editar produto" : "Adicionar produto ao cardápio"}</h2>
+    <div class="sub">${editando ? "Mude o que precisar e toque em Salvar alterações. Vendas antigas não mudam de valor." : "Para produtos diferentes dos cookies, como a marmita. Depois de salvar, ele aparece em Moldar, Assar, Estoque, Vendas e Preço e lucro."}</div>
+    <datalist id="np-ing-lista">${todosIngredientesUnicos().map(i=>`<option value="${esc(i.n)}">`).join("")}</datalist>
+    <datalist id="np-emb-lista">${itensExtras.map(i=>`<option value="${esc(i.nome)}">`).join("")}</datalist>
+    <div style="display:grid; gap:.6rem; max-width:560px;">
+      <input id="np-nome" type="text" placeholder="Nome do produto (ex.: Marmita de Cookie)" value="${esc(novoProd.nome)}" style="${inp}">
+      <div class="sub" style="margin:0;">Quanta massa de cookie vai em cada unidade? (em cookies: 4 quer dizer a massa de 4 cookies)</div>
+      <input id="np-massa" type="number" step="0.5" min="0" inputmode="decimal" value="${esc(novoProd.massaQtd)}" style="${inp}">
+      <input id="np-preco" type="number" step="0.01" inputmode="decimal" placeholder="Preço de venda (R$)" value="${esc(novoProd.preco)}" style="${inp}">
+      <strong style="font-size:.9rem;">Ingredientes a mais (por unidade)</strong>
+      ${novoProd.ing.length ? `<ul style="margin:0; padding-left:1.1rem; font-size:.9rem; display:grid; gap:.35rem;">${novoProd.ing.map((i,k)=>`<li>${esc(i.n)}: <input type="number" step="0.1" inputmode="decimal" data-np-q-ing="${k}" value="${i.unidade === "un" ? i.qtd : i.g}" style="${nIn}"> ${i.unidade === "un" ? "un" : "g"} <button type="button" class="btn-sec" data-np-del-ing="${k}" style="padding:.1rem .6rem; margin-left:.4rem;">tirar</button></li>`).join("")}</ul>` : ""}
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <input id="np-ing-n" list="np-ing-lista" type="text" placeholder="Ingrediente" style="${CK_INPUT} flex:2; min-width:140px;">
+        <input id="np-ing-q" type="number" step="0.1" inputmode="decimal" placeholder="Quanto" style="${CK_INPUT} flex:1; min-width:80px;">
+        <select id="np-ing-u" style="${CK_INPUT}"><option value="g">gramas</option><option value="un">unidades</option></select>
+        <button id="np-ing-add" type="button" class="btn-sec">+ ingrediente</button>
+      </div>
+      <strong style="font-size:.9rem;">Embalagem do produto</strong>
+      ${novoProd.emb.length ? `<ul style="margin:0; padding-left:1.1rem; font-size:.9rem; display:grid; gap:.35rem;">${novoProd.emb.map((e,k)=>`<li>${esc(e.nome)}: <input type="number" step="1" min="1" inputmode="numeric" data-np-q-emb="${k}" value="${esc(String(e.qtd))}" style="${nIn}"> un <button type="button" class="btn-sec" data-np-del-emb="${k}" style="padding:.1rem .6rem; margin-left:.4rem;">tirar</button></li>`).join("")}</ul>` : ""}
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <input id="np-emb-n" list="np-emb-lista" type="text" placeholder="Embalagem (ex.: pote de marmita, papel craft)" style="${CK_INPUT} flex:2; min-width:140px;">
+        <input id="np-emb-q" type="number" step="1" min="1" inputmode="numeric" value="1" style="${CK_INPUT} flex:1; min-width:70px;">
+        <button id="np-emb-add" type="button" class="btn-sec">+ embalagem</button>
+      </div>
+      <button id="np-salvar" type="button" style="${CK_BTN}">${editando ? "Salvar alterações" : "Salvar produto"}</button>
+      ${editando ? `<button id="np-cancelar" type="button" class="btn-sec">Cancelar edição</button>` : ""}
+      <div id="np-msg" style="font-size:.85rem;">${esc(novoProd.msg)}</div>
+    </div>
+  `;
+  grade.appendChild(f);
+
+  const q = id => f.querySelector("#" + id);
+  q("np-nome").addEventListener("input", e=>{ novoProd.nome = e.target.value; });
+  q("np-massa").addEventListener("input", e=>{ novoProd.massaQtd = e.target.value; });
+  q("np-preco").addEventListener("input", e=>{ novoProd.preco = e.target.value; });
+  f.querySelectorAll("[data-np-q-ing]").forEach(inp2=> inp2.addEventListener("input", e=>{
+    const i = novoProd.ing[parseInt(e.target.dataset.npQIng)], v = parseFloat(e.target.value);
+    if (!i || isNaN(v) || v <= 0) return;
+    if (i.unidade === "un") i.qtd = v; else i.g = v;
+  }));
+  f.querySelectorAll("[data-np-q-emb]").forEach(inp2=> inp2.addEventListener("input", e=>{
+    const x = novoProd.emb[parseInt(e.target.dataset.npQEmb)], v = parseFloat(e.target.value);
+    if (x && !isNaN(v) && v > 0) x.qtd = v;
+  }));
+  q("np-ing-add").addEventListener("click", ()=>{
+    const n = q("np-ing-n").value.trim(), v = parseFloat(q("np-ing-q").value);
+    if (!n || isNaN(v) || v <= 0){ novoProd.msg = "Escreva o ingrediente e quanto vai em cada unidade."; render(); return; }
+    novoProd.ing.push(montarIngProprio(n, v, q("np-ing-u").value)); novoProd.msg = ""; render();
+  });
+  q("np-emb-add").addEventListener("click", ()=>{
+    const n = q("np-emb-n").value.trim(), v = parseFloat(q("np-emb-q").value);
+    if (!n || isNaN(v) || v <= 0){ novoProd.msg = "Escreva a embalagem e quantas vão em cada unidade."; render(); return; }
+    novoProd.emb.push({ nome:n, qtd:v }); novoProd.msg = ""; render();
+  });
+  f.querySelectorAll("[data-np-del-ing]").forEach(b=> b.addEventListener("click", ()=>{ novoProd.ing.splice(parseInt(b.dataset.npDelIng), 1); render(); }));
+  f.querySelectorAll("[data-np-del-emb]").forEach(b=> b.addEventListener("click", ()=>{ novoProd.emb.splice(parseInt(b.dataset.npDelEmb), 1); render(); }));
+  const cancelar = q("np-cancelar");
+  if (cancelar) cancelar.addEventListener("click", ()=>{ novoProd = novoProdVazio(); render(); });
+  q("np-salvar").addEventListener("click", ()=>{
+    const nome = novoProd.nome.trim();
+    const preco = parseFloat(novoProd.preco);
+    const massaQtd = parseFloat(novoProd.massaQtd);
+    if (!nome){ novoProd.msg = "Dê um nome ao produto."; render(); return; }
+    if (sabores.some(x=>x.id !== novoProd.editId && x.nome.toLowerCase() === nome.toLowerCase())){ novoProd.msg = "Já existe um produto com esse nome."; render(); return; }
+    if (isNaN(massaQtd) || massaQtd < 0){ novoProd.msg = "Diga quantos cookies de massa vão em cada unidade (pode ser 0)."; render(); return; }
+    if (isNaN(preco) || preco <= 0){ novoProd.msg = "Coloque o preço de venda."; render(); return; }
+    // embalagem nova vira item de compra (preço entra em Comprar); as que já existiam (ex.: papel craft) são só reaproveitadas
+    novoProd.emb.forEach(e=>{
+      if (!itensExtras.some(it=>it.nome === e.nome)) itensExtras.push({ nome:e.nome, porCookie:false, precoUnitario:"", deProduto:true });
+    });
+    saveExtras(itensExtras);
+    const dados = { nome, extra:true, massaQtd, recheio:novoProd.ing, emb:novoProd.emb };
+    let id = novoProd.editId, msg;
+    if (id){
+      const i = produtosExtras.findIndex(p=>p.id === id);
+      if (i >= 0) produtosExtras[i] = Object.assign({ id }, dados);
+      msg = `"${nome}" foi atualizado.`;
+    } else {
+      id = "p" + Date.now();
+      produtosExtras.push(Object.assign({ id }, dados));
+      msg = `"${nome}" foi para o cardápio. Registre a compra dos ingredientes e da embalagem em Comprar para o custo aparecer.`;
+    }
+    saveProdutosExtras(produtosExtras);
+    sincronizarProdutosExtras();
+    precosVenda[id] = String(preco); savePrecosVenda(precosVenda);
+    novoProd = novoProdVazio(msg);
+    render();
+  });
+  grade.querySelectorAll("[data-edit-prod]").forEach(b=> b.addEventListener("click", ()=>{
+    const p = produtosExtras.find(x=>x.id === b.dataset.editProd);
+    if (!p) return;
+    novoProd = { editId:p.id, nome:p.nome, massaQtd:String(p.massaQtd), preco:String(precosVenda[p.id] ?? ""),
+      ing:p.recheio.map(i=>Object.assign({}, i)), emb:p.emb.map(e=>Object.assign({}, e)), msg:"" };
+    render();
+    const alvo = document.getElementById("np-form");
+    if (alvo) alvo.scrollIntoView({ behavior:"smooth", block:"start" });
+  }));
+  grade.querySelectorAll("[data-del-prod]").forEach(b=> b.addEventListener("click", ()=>{
+    const id = b.dataset.delProd;
+    if (produtoTemMovimento(id)) return;
+    if (!confirm("Excluir este produto do cardápio?")) return;
+    produtosExtras = produtosExtras.filter(p=>p.id !== id);
+    saveProdutosExtras(produtosExtras);
+    delete precosVenda[id]; savePrecosVenda(precosVenda); delete NOME_SABOR[id];
+    if (novoProd.editId === id) novoProd = novoProdVazio();
+    sincronizarProdutosExtras();
+    render();
+  }));
+}
+
 function render(){
   const wrap = document.getElementById("recipes");
   wrap.innerHTML = `<p style="font-size:0.85rem; opacity:0.75; margin:0 0 0.8rem;">Aqui ficam só as quantidades de cada receita. O preço dos ingredientes fica na aba Comprar.</p>`;
 
+  const grade = document.createElement("div");
+  grade.className = "p-grade";
+  wrap.appendChild(grade);
+
   // Massa-base (compartilhada)
   const baseDiv = document.createElement("div");
-  baseDiv.className = "recipe";
+  baseDiv.className = "cartao c6";
   baseDiv.innerHTML = `
     <h2>Massa-base</h2>
     <div class="sub">${PESO_MASSA_POR_COOKIE}g por cookie · fornada de ${massaBase.reduce((s,i)=>s+ (i.unidade==="un"?0:i.g),0)}g de massa</div>
@@ -524,22 +827,49 @@ function render(){
     </div>
     <table>${tableHead()}<tbody>${massaBase.map(inputRow).join("")}</tbody></table>
   `;
-  wrap.appendChild(baseDiv);
+  grade.appendChild(baseDiv);
 
   // Sabores
   sabores.forEach(s=>{
+    if (s.extra) return;   // produtos novos têm cartão próprio, mais abaixo
     const div = document.createElement("div");
-    div.className = "recipe";
-    const recheioRows = s.recheio.length
-      ? `<table>${tableHead()}<tbody>${s.recheio.map(inputRow).join("")}</tbody></table>`
+    div.className = "cartao c6";
+    const base = s.recheioBase || s.recheio, plus = receitaExtra[s.id] || [];
+    const recheioRows = base.length
+      ? `<table>${tableHead()}<tbody>${base.map(inputRow).join("")}</tbody></table>`
       : `<p style="font-size:0.9rem; opacity:0.7;">Sem recheio — só a massa-base.</p>`;
+    const maisRows = plus.length
+      ? `<div class="sub" style="margin-top:.7rem;">Ingredientes a mais</div><table><tbody>${plus.map((i,k)=>`<tr><td>${esc(i.n)}</td><td class="qty">${textoQtdIng(i)} <button type="button" class="btn-sec" data-rx-del="${s.id}|${k}" style="padding:.05rem .55rem; margin-left:.4rem;">tirar</button></td></tr>`).join("")}</tbody></table>`
+      : "";
     div.innerHTML = `
       <h2>${s.nome}</h2>
-      <div class="sub">${PESO_MASSA_POR_COOKIE + s.recheio.reduce((a,i)=>a+gramasEfetivas(i),0)}g por cookie</div>
+      <div class="sub">${PESO_MASSA_POR_COOKIE + s.recheio.filter(i=>i.unidade !== "un").reduce((a,i)=>a+gramasEfetivas(i),0)}g por cookie</div>
       ${recheioRows}
+      ${maisRows}
+      <div class="acoes" style="display:flex; gap:.4rem; flex-wrap:wrap;">
+        <input class="rx-n" list="np-ing-lista" type="text" placeholder="Ingrediente a mais (ex.: crocante)" style="${CK_INPUT} flex:2; min-width:130px;">
+        <input class="rx-q" type="number" step="0.1" inputmode="decimal" placeholder="Quanto" style="${CK_INPUT} flex:1; min-width:70px;">
+        <select class="rx-u" style="${CK_INPUT}"><option value="g">gramas</option><option value="un">unidades</option></select>
+        <button class="btn-sec rx-add" data-sabor="${s.id}" type="button">+ ingrediente</button>
+      </div>
     `;
-    wrap.appendChild(div);
+    grade.appendChild(div);
   });
+
+  renderProdutosNovos(grade);
+
+  wrap.querySelectorAll(".rx-add").forEach(b=> b.addEventListener("click", ()=>{
+    const card = b.closest(".cartao"), sid = b.dataset.sabor;
+    const n = card.querySelector(".rx-n").value.trim(), v = parseFloat(card.querySelector(".rx-q").value);
+    if (!n || isNaN(v) || v <= 0){ alert("Escreva o ingrediente e quanto vai em cada cookie."); return; }
+    (receitaExtra[sid] = receitaExtra[sid] || []).push(montarIngProprio(n, v, card.querySelector(".rx-u").value));
+    saveReceitaExtra(receitaExtra); sincronizarProdutosExtras(); render();
+  }));
+  wrap.querySelectorAll("[data-rx-del]").forEach(b=> b.addEventListener("click", ()=>{
+    const [sid, k] = b.dataset.rxDel.split("|");
+    (receitaExtra[sid] || []).splice(parseInt(k), 1);
+    saveReceitaExtra(receitaExtra); sincronizarProdutosExtras(); render();
+  }));
 
   const rendInput = wrap.querySelector("#rendimento-input");
   if (rendInput) rendInput.addEventListener("change", e=>{
@@ -567,16 +897,27 @@ function custoEmbalagemPorCookie(){
   }, 0);
 }
 
+// Embalagem de uma unidade: a própria do produto (se ele tiver) ou a padrão dos cookies
+function embalagemDoSabor(s){
+  if (Array.isArray(s.emb) && s.emb.length){
+    return s.emb.reduce((a, e)=>{
+      const it = itensExtras.find(x=>x.nome === e.nome);
+      const p = it ? parseFloat(it.precoUnitario) : NaN;
+      return isNaN(p) ? a : a + p * (parseFloat(e.qtd) || 0);
+    }, 0);
+  }
+  return custoEmbalagemPorCookie();
+}
 function custoPorCookieDoSabor(s){
   const { custo: custoBase, faltando: faltBase } = custoMassaBase();
-  const custoMassaPorCookie = custoBase / RENDIMENTO_FORNADA;
+  const custoMassaPorCookie = custoBase / RENDIMENTO_FORNADA * (s.massaQtd > 0 ? s.massaQtd : 1);
   let custoRecheio = 0, faltRecheio = 0;
   s.recheio.forEach(ing=>{
     const c = custoIngrediente(ing);
     if (c === null) faltRecheio++; else custoRecheio += c;
   });
   const faltando = faltBase + faltRecheio;
-  return faltando > 0 ? null : (custoMassaPorCookie + custoRecheio + custoEmbalagemPorCookie());
+  return faltando > 0 ? null : (custoMassaPorCookie + custoRecheio + embalagemDoSabor(s));
 }
 
 // ---- Estoque ----
@@ -599,6 +940,7 @@ function saveRecheioGramas(obj){ try{ localStorage.setItem(RECHEIO_G_KEY, JSON.s
 let recheioGramas = loadRecheioGramas();
 
 function gramasEfetivas(ing){
+  if (ing.proprio) return ing.g;
   const ov = parseFloat(recheioGramas[ing.n]);
   return (!isNaN(ov) && ov > 0) ? ov : ing.g;
 }
@@ -631,13 +973,14 @@ function renderStock(){
   }).join("");
 
   wrap.innerHTML = `
+    <div class="p-grade">
     ${cartaoEstoqueEmFalta()}
-    <div class="recipe">
+    <div class="cartao c6 span2">
       <h2>Estoque de ingredientes</h2>
       <div class="sub">Use para corrigir a contagem. Para registrar uma compra, use a aba Comprar (ela refaz o custo e lança no Caixa).</div>
       <table>${tableHeadStock()}<tbody>${rows}</tbody></table>
     </div>
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Estoque de embalagens</h2>
       <div class="sub">Figurinha e plástico saem sozinhos a cada cookie vendido. Papel kraft você informa na hora da venda.</div>
       <table class="tabela-compacta"><thead><tr><th>Item</th><th class="qty">Estoque</th><th class="qty">R$/un</th><th class="qty">1 por cookie</th><th></th></tr></thead><tbody>
@@ -650,14 +993,15 @@ function renderStock(){
         </tr>`).join("")}
       </tbody></table>
 
-      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(185,131,90,0.3); display:flex; gap:0.5rem;">
+      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(176,141,87,0.3); display:flex; gap:0.5rem;">
         <input id="novo-extra" type="text" placeholder="novo item de embalagem" style="flex:1; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
         <button id="add-extra" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.4rem 0.9rem; cursor:pointer;">Adicionar</button>
       </div>
     </div>
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Quanto dá pra fazer</h2>
       <div id="rendimentos"></div>
+    </div>
     </div>
   `;
 
@@ -773,7 +1117,7 @@ function mostrarNota(itens, nomes, status, out){
   status.textContent = "Confira os itens abaixo. Ajuste o que estiver errado e aplique.";
   out.innerHTML = itens.map((it,i)=>{
     const sel = nomes.includes(it.ingrediente) ? it.ingrediente : "";
-    return `<div class="nota-item" style="border-top:1px solid rgba(185,131,90,0.3); padding:0.6rem 0;">
+    return `<div class="nota-item" style="border-top:1px solid rgba(176,141,87,0.3); padding:0.6rem 0;">
       <div style="font-size:0.85rem; opacity:0.75; margin-bottom:0.3rem;">${esc(it.descricao)}</div>
       <select class="nota-sel" style="width:100%; padding:0.4rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
         <option value="">— ignorar este item —</option>
@@ -839,10 +1183,10 @@ function calcularDaPraFazer(s){
   }
   const ingredientes = ingredientesDoSabor(s);
   let minCookies = Infinity, gargalo = null, algumCadastrado = false;
-  ingredientes.forEach(({ing, deBase})=>{
+  ingredientes.forEach(({ing, deBase, mult})=>{
     const disp = parseFloat(estoque[ing.n]);
     if (!isNaN(disp)) algumCadastrado = true;
-    const consumo = consumoPorCookie(ing, deBase);
+    const consumo = consumoPorCookie(ing, deBase) * (mult || 1);
     const possiveis = isNaN(disp) ? 0 : Math.max(0, Math.floor(disp/consumo));
     if (possiveis < minCookies){ minCookies = possiveis; gargalo = ing.n; }
   });
@@ -860,7 +1204,7 @@ function renderRendimentos(){
     else if (estoqueVazio) nota = `<div class="gargalo">estoque ainda não cadastrado</div>`;
     else if (minCookies < RENDIMENTO_FORNADA) nota = `<div class="gargalo">falta ingrediente: ${gargalo}</div>`;
 
-    return `<div class="summary" style="border-top:1px solid rgba(185,131,90,0.3); padding:0.6rem 0;">
+    return `<div class="summary" style="border-top:1px solid rgba(176,141,87,0.3); padding:0.6rem 0;">
       <div style="min-width:140px;"><span class="label">${s.nome}</span><span class="value">${receitaIncompleta ? "—" : minCookies+" cookies"}</span></div>
       ${nota}
     </div>`;
@@ -896,6 +1240,19 @@ const FIXOS_EXTRAS_KEY = "casaruth_custos_fixos_extras";
 function loadFixosExtras(){ try{ return JSON.parse(localStorage.getItem(FIXOS_EXTRAS_KEY)||"[]"); }catch(e){return [];} }
 function saveFixosExtras(list){ try{ localStorage.setItem(FIXOS_EXTRAS_KEY, JSON.stringify(list)); }catch(e){} marcarAlterado(); }
 let custosFixosExtras = loadFixosExtras();
+
+function primeiroDiaRegistrado(mes){
+  const datas = [];
+  const add = d=>{ if (d && String(d).slice(0,7)===mes) datas.push(String(d).slice(0,10)); };
+  historicoVendas.forEach(v=> add(v.dataISO));
+  historicoProducao.forEach(f=> add(f.dataISO || (f.data ? f.data.split("/").reverse().join("-") : "")));
+  historicoMoldados.forEach(m=> add(m.dataISO));
+  historicoCompras.forEach(c=> add(c.dataISO));
+  historicoCaixa.forEach(l=>{ if (l.categoria !== "conta") add(l.dataISO); });
+  if (!datas.length) return null;
+  datas.sort();
+  return parseInt(datas[0].slice(8,10), 10);
+}
 
 function totalCustosFixos(){
   const base = ["salarioCris","aluguel","agua","internet"]
@@ -951,7 +1308,8 @@ function volumeBaseComparacao(){
 }
 
 function custoVariavelMedio(){
-  const custos = sabores.map(s=>custoPorCookieDoSabor(s)).filter(c=>c!==null);
+  const soCookies = sabores.filter(s=>!s.extra);
+  const custos = (soCookies.length ? soCookies : sabores).map(s=>custoPorCookieDoSabor(s)).filter(c=>c!==null);
   if (!custos.length) return null;
   return custos.reduce((a,b)=>a+b,0)/custos.length;
 }
@@ -1018,11 +1376,12 @@ let itensExtras = loadExtras();
 
 function renderConfig(){
   const el = document.getElementById("config");
-  const nomesSabor = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
+  const nomesSabor = NOME_SABOR;
   const temaAtual = loadTheme();
 
   el.innerHTML = `
-    <div class="recipe">
+    <div class="p-grade">
+    <div class="cartao c6">
       <h2>Backup dos dados</h2>
       <div class="sub">Seus dados ficam guardados só neste navegador. O backup é um arquivo com tudo (preços, estoque, vendas, caixa, contas). Se trocar de aparelho, limpar o navegador ou abrir uma versão nova do app em outro lugar, é só restaurar.</div>
       <div style="font-size:0.85rem; margin-bottom:0.7rem;">${ultimoBackupTexto()}</div>
@@ -1039,7 +1398,7 @@ function renderConfig(){
       </div>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Preços de venda</h2>
       <table><tbody>
         ${Object.keys(nomesSabor).map(id=>`<tr>
@@ -1049,7 +1408,7 @@ function renderConfig(){
       </tbody></table>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Combos de venda</h2>
       <div class="sub">Pacotes com preço especial, misturando sabores</div>
       <table><tbody>
@@ -1061,7 +1420,7 @@ function renderConfig(){
         </tr>`).join("") || `<tr><td colspan="2" style="opacity:0.6;">Nenhum combo cadastrado ainda</td></tr>`}
       </tbody></table>
 
-      <div style="margin-top:0.8rem; padding-top:0.6rem; border-top:1px solid rgba(185,131,90,0.3);">
+      <div style="margin-top:0.8rem; padding-top:0.6rem; border-top:1px solid rgba(176,141,87,0.3);">
         <div class="sub" style="margin-bottom:0.4rem;">Novo combo</div>
         <div style="display:flex; flex-direction:column; gap:0.5rem;">
           <input id="novo-combo-nome" type="text" placeholder="nome do combo" value="${esc(comboEmEdicaoNome)}" style="padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
@@ -1082,7 +1441,7 @@ function renderConfig(){
       </div>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Custos fixos mensais</h2>
       <table><tbody>
         <tr><td>Salário da Cris</td><td class="price">R$ <input class="cfg-input" data-group="fixo" data-key="salarioCris" type="number" step="0.01" inputmode="decimal" value="${custosFixos.salarioCris ?? ""}"></td></tr>
@@ -1103,7 +1462,7 @@ function renderConfig(){
       </div>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Meta e comparação histórica</h2>
       <div class="sub">Usados na aba "Preço e lucro" pra projetar o custo com diferentes volumes de produção</div>
       <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.6rem;">
@@ -1131,7 +1490,7 @@ function renderConfig(){
       </div>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Aparência</h2>
       <div class="sub">Tema do app</div>
       <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
@@ -1142,7 +1501,7 @@ function renderConfig(){
       </div>
     </div>
 
-    <div class="recipe">
+    <div class="cartao c12">
       <h2>Atalhos do Painel</h2>
       <div class="sub">Botões extras que aparecem no topo do Painel</div>
       <table><tbody>
@@ -1163,6 +1522,7 @@ function renderConfig(){
       </div>
     </div>
 
+    </div>
   `;
 
   ligarBackup(el);
@@ -1278,12 +1638,18 @@ function custoPorCookieUltimoPago(s){
   let massa = 0, rec = 0, emb = 0;
   massaBase.forEach(ing=>{ const c = custoIngrediente(ing); if (c !== null) massa += c * fator(ing.n); });
   s.recheio.forEach(ing=>{ const c = custoIngrediente(ing); if (c !== null) rec += c * fator(ing.n); });
-  itensExtras.forEach(it=>{
+  if (Array.isArray(s.emb) && s.emb.length){
+    s.emb.forEach(e=>{
+      const it = itensExtras.find(x=>x.nome === e.nome);
+      const p = it ? parseFloat(it.precoUnitario) : NaN;
+      if (!isNaN(p)) emb += p * (parseFloat(e.qtd) || 0) * fator(e.nome);
+    });
+  } else itensExtras.forEach(it=>{
     if (!it.porCookie) return;
     const p = parseFloat(it.precoUnitario);
     if (!isNaN(p)) emb += p * fator(it.nome);
   });
-  return massa / RENDIMENTO_FORNADA + rec + emb;
+  return massa / RENDIMENTO_FORNADA * (s.massaQtd > 0 ? s.massaQtd : 1) + rec + emb;
 }
 
 function renderPreco(){
@@ -1295,20 +1661,21 @@ function renderPreco(){
   const vol = base.valor || meta || null;
   const origemVol = base.valor ? base.origem : "meta do mês";
   const fixoPorCookie = vol ? fixo / vol : null;
-  const verde = "color:#5F7F4F;", vinho = "color:var(--wine);";
+  const verde = "color:#3F7D4F;", vinho = "color:var(--wine);";
 
   // uma linha de contas por sabor
   const lin = sabores.map(s=>{
     const custoVar = custoPorCookieDoSabor(s);
+    const fx = fixoPorCookie === null ? null : fixoPorCookie * (s.massaQtd > 0 ? s.massaQtd : 1);   // produto com mais massa divide mais conta fixa
     const preco = parseFloat(precosVenda[s.id]);
     const temPreco = !isNaN(preco) && preco > 0;
-    const ok = custoVar !== null && temPreco && fixoPorCookie !== null;
-    const custoTotal = ok ? custoVar + fixoPorCookie : null;
+    const ok = custoVar !== null && temPreco && fx !== null;
+    const custoTotal = ok ? custoVar + fx : null;
     const sobra = ok ? preco - custoTotal : null;
     const pct = ok ? (sobra / preco) * 100 : null;
     const sugerido = ok ? custoTotal / (1 - margemDesejada / 100) : null;
     // quanto o custo de ingrediente+embalagem precisaria cair para manter a margem sem mexer no preço
-    const custoVarMax = ok ? preco * (1 - margemDesejada / 100) - fixoPorCookie : null;
+    const custoVarMax = ok ? preco * (1 - margemDesejada / 100) - fx : null;
     const cortar = ok ? custoVar - custoVarMax : null;
     const ult = custoVar !== null ? custoPorCookieUltimoPago(s) : null;
     return { s, nome: NOME_SABOR[s.id], custoVar, preco, temPreco, ok, custoTotal, sobra, pct, sugerido, cortar, ult };
@@ -1350,11 +1717,12 @@ function renderPreco(){
   // ---- 3) o que acontece se continuar assim ----
   let futuro = "";
   if (completos.length){
-    const margemMed = completos.reduce((a,l)=> a + (l.preco - l.custoVar), 0) / completos.length;
+    const soCook = completos.filter(l=>!l.s.extra), baseMed = soCook.length ? soCook : completos;
+    const margemMed = baseMed.reduce((a,l)=> a + (l.preco - l.custoVar), 0) / baseMed.length;
     const equilibrio = margemMed > 0 ? Math.ceil(fixo / margemMed) : null;
     const lucroVol = margemMed * vol - fixo;
     const cenarios = [Math.round(vol * 0.5), Math.round(vol), Math.round(vol * 1.5)];
-    futuro = `<div class="recipe">
+    futuro = `<div class="cartao c5">
       <h2>Se continuar assim</h2>
       <div class="summary">
         <div><span class="label">Precisa vender para empatar</span><span class="value">${equilibrio === null ? "nunca (preço menor que o custo)" : equilibrio + " cookies/mês"}</span></div>
@@ -1380,7 +1748,7 @@ function renderPreco(){
   });
   mov.sort((a,b)=> b.v - a.v);
   const fmtP = (m, n) => m.porKg ? brl(n * 1000) + "/kg" : brlUn(n) + "/un";
-  const comUlt = lin.filter(l=>l.ult !== null && l.temPreco && fixoPorCookie !== null);
+  const comUlt = lin.filter(l=>l.ult !== null && l.temPreco && fixoPorCookie !== null && !l.s.extra);
   let efeito = "";
   if (comUlt.length){
     const dif = comUlt.reduce((a,l)=> a + (l.ult - l.custoVar), 0) / comUlt.length;
@@ -1390,7 +1758,7 @@ function renderPreco(){
         ? `<span style="${vinho}">Se os preços da última compra viram o normal, cada cookie passa a custar ${brl(dif)} a mais (média dos sabores).</span>`
         : `Se os preços da última compra viram o normal, cada cookie passa a custar ${brl(-dif)} a menos (média dos sabores).`);
   }
-  const ingred = `<div class="recipe">
+  const ingred = `<div class="cartao ${completos.length ? "c7" : "c5"}">
       <h2>Os ingredientes estão subindo?</h2>
       ${mov.length ? `<table class="tabela-real" style="margin-top:0.4rem;"><thead><tr><th>Item</th><th class="qty">Médio</th><th class="qty">Último</th><th class="price">Variação</th></tr></thead><tbody>${mov.slice(0,8).map(m=>`<tr>
         <td>${esc(m.nome)}</td><td class="qty">${fmtP(m, m.c)}</td><td class="qty">${fmtP(m, m.u)}</td>
@@ -1400,7 +1768,7 @@ function renderPreco(){
     </div>`;
 
   // ---- 5) subir o preço ou controlar a compra ----
-  const decisao = completos.length ? `<div class="recipe">
+  const decisao = completos.length ? `<div class="cartao c5">
       <h2>Subir o preço ou controlar a compra?</h2>
       <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.4rem;">
         <span>Margem que eu quero:</span>
@@ -1415,7 +1783,8 @@ function renderPreco(){
     </div>` : "";
 
   el.innerHTML = `
-    <div class="recipe">
+    <div class="p-grade">
+    <div class="cartao c7">
       <h2>Estou tendo lucro?</h2>
       ${veredito}
       <table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Sabor</th><th class="qty">Custo</th><th class="qty">Venda</th><th class="price">Sobra</th></tr></thead><tbody>${tabela}</tbody></table>
@@ -1424,6 +1793,7 @@ function renderPreco(){
     ${futuro}
     ${ingred}
     ${decisao}
+    </div>
   `;
 
   const mi = el.querySelector("#margem-desejada");
@@ -1462,6 +1832,7 @@ function saldoDe(tipo, saborId){ return parseInt(saldoCookies[tipo][saborId]) ||
 function somaSaldo(tipo, saborId, delta){ saldoCookies[tipo][saborId] = saldoDe(tipo, saborId) + delta; }
 
 const NOME_SABOR = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
+sincronizarProdutosExtras();
 const CK_INPUT = "padding:0.5rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;";
 const CK_BTN = "border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.5rem; cursor:pointer;";
 const CK_BTN_RM = "border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.15rem 0.5rem; font-size:0.8rem; cursor:pointer;";
@@ -1481,8 +1852,8 @@ function ajustarIngredientes(saborId, total, sinal){
   const faltou = [];
   const s = sabores.find(x=>x.id===saborId);
   if (!s) return faltou;
-  ingredientesDoSabor(s).forEach(({ing, deBase})=>{
-    const consumo = consumoPorCookie(ing, deBase) * total;
+  ingredientesDoSabor(s).forEach(({ing, deBase, mult})=>{
+    const consumo = consumoPorCookie(ing, deBase) * (mult || 1) * total;
     const atual = parseFloat(estoque[ing.n]) || 0;
     if (sinal < 0){
       if (atual < consumo) faltou.push(ing.n);
@@ -1500,8 +1871,8 @@ function faltaParaMoldar(saborId, total){
   const lista = [];
   const s = sabores.find(x=>x.id===saborId);
   if (!s) return lista;
-  ingredientesDoSabor(s).forEach(({ing, deBase})=>{
-    const consumo = consumoPorCookie(ing, deBase) * total;
+  ingredientesDoSabor(s).forEach(({ing, deBase, mult})=>{
+    const consumo = consumoPorCookie(ing, deBase) * (mult || 1) * total;
     const atual = parseFloat(estoque[ing.n]) || 0;
     if (atual < consumo){
       const un = ing.unidade === "un" ? "un" : "g";
@@ -1526,7 +1897,8 @@ function renderCookies(){
     <td class="qty"><input class="aj-asso" data-sabor="${s.id}" type="number" inputmode="numeric" value="${saldoDe("assados", s.id)}" style="width:5rem; ${CK_INPUT}"></td></tr>`).join("");
 
   el.innerHTML = `
-    <div class="recipe">
+    <div class="p-grade">
+    <div class="cartao c6">
       <h2>Moldei cookies</h2>
       <div class="sub">Desconta os ingredientes e coloca os cookies no congelador</div>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
@@ -1539,22 +1911,23 @@ function renderCookies(){
         <div id="mold-msg" style="font-size:0.85rem;"></div>
       </div>
     </div>
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Saldo de cookies</h2>
       <div class="sub">Congelados esperando para assar e assados prontos para vender</div>
       ${tabelaSaldos()}
     </div>
-    <div class="recipe">
-      <h2>Saldo inicial de cookies</h2>
-      <div class="sub">Digite quantos cookies você já tem de cada sabor, congelados e assados, ao começar ou quando contar o que tem de verdade. Não mexe nos ingredientes nem no Caixa.</div>
+    <div class="cartao c6">
+      <h2>Acertar saldos</h2>
+      <div class="sub">Use para começar ou quando contar o que tem de verdade. Não mexe nos ingredientes.</div>
       <table><thead><tr><th>Sabor</th><th class="qty">Congelados</th><th class="qty">Assados</th></tr></thead><tbody>${linhasAjuste}</tbody></table>
       <button id="saldo-salvar" style="${CK_BTN} margin-top:0.6rem;">Salvar saldos</button>
       <div id="saldo-msg" style="font-size:0.85rem; margin-top:0.4rem;"></div>
     </div>
-    <div class="recipe">
+    <div class="cartao c12">
       <h2>Últimas moldagens</h2>
       <table><thead><tr><th>Data</th><th>Sabor</th><th class="qty">Qtd</th><th></th></tr></thead>
       <tbody>${historico || `<tr><td colspan="4" style="opacity:0.6;">Nenhuma moldagem registrada ainda</td></tr>`}</tbody></table>
+    </div>
     </div>
   `;
 
@@ -1628,8 +2001,9 @@ function saveProducao(list){ try{ localStorage.setItem(PRODUCAO_KEY, JSON.string
 let historicoProducao = loadProducao();
 
 function ingredientesDoSabor(s){
-  return massaBase.map(i=>({ing:i, deBase:true}))
-    .concat(s.recheio.filter(i=>!estaPendente(i)).map(i=>({ing:i, deBase:false})));
+  const m = s.massaQtd > 0 ? s.massaQtd : 1;
+  return massaBase.map(i=>({ing:i, deBase:true, mult:m}))
+    .concat(s.recheio.filter(i=>!estaPendente(i)).map(i=>({ing:i, deBase:false, mult:1})));
 }
 
 function renderProducao(){
@@ -1645,7 +2019,8 @@ function renderProducao(){
     </tr>`).join("");
 
   el.innerHTML = `
-    <div class="recipe">
+    <div class="p-grade">
+    <div class="cartao c6">
       <h2>Assar cookies</h2>
       <div class="sub">Tira do congelador. Os ingredientes já foram descontados quando você moldou.</div>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
@@ -1654,22 +2029,23 @@ function renderProducao(){
         </select>
         <input id="prod-data" type="date" value="${hojeISO()}" style="${CK_INPUT}">
         <div style="display:flex; gap:0.6rem;">
-          <input id="prod-bons" type="number" inputmode="numeric" placeholder="Saíram bons" style="flex:1; ${CK_INPUT}">
-          <input id="prod-perdidos" type="number" inputmode="numeric" placeholder="Perdidos/queimados" style="flex:1; ${CK_INPUT}">
+          <input id="prod-bons" type="number" inputmode="numeric" placeholder="Saíram bons" style="flex:1; min-width:0; ${CK_INPUT}">
+          <input id="prod-perdidos" type="number" inputmode="numeric" placeholder="Perdidos/queimados" style="flex:1; min-width:0; ${CK_INPUT}">
         </div>
         <button id="prod-salvar" style="${CK_BTN}">Registrar fornada</button>
         <div id="prod-msg" style="font-size:0.85rem;"></div>
       </div>
     </div>
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Saldo de cookies</h2>
       <div class="sub">Os bons entram em "Assados"; bons e queimados saem de "Congelados"</div>
       ${tabelaSaldos()}
     </div>
-    <div class="recipe">
+    <div class="cartao c12">
       <h2>Últimas fornadas</h2>
       <table><thead><tr><th>Data</th><th>Sabor</th><th class="qty">Bons</th><th class="qty">Perdidos</th><th></th></tr></thead>
       <tbody>${historico || `<tr><td colspan="5" style="opacity:0.6;">Nenhuma fornada registrada ainda</td></tr>`}</tbody></table>
+    </div>
     </div>
   `;
 
@@ -1760,7 +2136,7 @@ function isoParaBR(iso){ const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`
 let modoVendaAtual = "avulso";
 function renderVendas(){
   const el = document.getElementById("vendas");
-  const nomesSabor = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
+  const nomesSabor = NOME_SABOR;
   const mAtual = mesAtual();
 
   let totalCookies = 0, totalReceita = 0;
@@ -1797,7 +2173,11 @@ function renderVendas(){
   }).join("");
 
   el.innerHTML = `
-    <div class="recipe">
+    <div class="p-grade">
+    <div class="cartao kpi k4"><div class="ic">${iconePainel("cookie")}</div><div><div class="rot">Vendidos este mês</div><div class="num">${totalCookies} <small>cookies</small></div></div></div>
+    <div class="cartao kpi k4"><div class="ic">${iconePainel("caixa")}</div><div><div class="rot">Receita do mês</div><div class="num">${brl(totalReceita)}</div></div></div>
+    <div class="cartao kpi k4"><div class="ic">${iconePainel("lucro")}</div><div><div class="rot">Meta (ponto de equilíbrio)</div><div class="num">${pontoEquilibrio === null ? "—" : `${pontoEquilibrio} <small>cookies</small>`}</div><div class="det">${pontoEquilibrio === null ? "Defina preços e custos para ver a meta" : (totalCookies >= pontoEquilibrio ? `Meta batida esse mês ${ICONE_OK}` : `Faltam ${pontoEquilibrio-totalCookies} cookies para bater a meta.`)}</div></div></div>
+    <div class="cartao c5">
       <h2>Registrar venda</h2>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
         <div style="display:flex; gap:0.6rem;">
@@ -1819,28 +2199,20 @@ function renderVendas(){
         </div>
         <div style="font-size:0.85rem; opacity:0.85;">Assados prontos: ${sabores.map(sb=>`${NOME_SABOR[sb.id]||sb.id}: ${saldoTexto(saldoDe("assados", sb.id))}`).join(" · ")}</div>
         <input id="venda-data" type="date" value="${hojeISO()}" style="padding:0.5rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
-        ${itensExtras.filter(it=>!it.porCookie).map((it,i)=>`
+        ${itensExtras.filter(it=>!it.porCookie && !it.deProduto).map((it,i)=>`
           <input class="venda-extra-manual" data-nome="${esc(it.nome)}" type="number" step="1" placeholder="Quantos de ${esc(it.nome)} usou nesta venda?" style="padding:0.5rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
         `).join("")}
         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem;">
           <input id="venda-lancar-caixa" type="checkbox"> Lançar essa receita direto no Caixa também
         </label>
-        <button id="venda-salvar" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.5rem; cursor:pointer;">Registrar venda</button>
+        <button id="venda-salvar" class="btn-pri" type="button" style="padding:.65rem;">Registrar venda</button>
       </div>
     </div>
-    <div class="recipe">
-      <h2>Este mês</h2>
-      <div class="summary">
-        <div><span class="label">Vendidos</span><span class="value">${totalCookies} cookies</span></div>
-        <div><span class="label">Receita</span><span class="value">R$ ${totalReceita.toFixed(2)}</span></div>
-        <div><span class="label">Meta (ponto de equilíbrio)</span><span class="value">${pontoEquilibrio===null?"—":pontoEquilibrio+" cookies"}</span></div>
-      </div>
-      ${pontoEquilibrio!==null ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.6rem;">${totalCookies >= pontoEquilibrio ? `Meta batida esse mês ${ICONE_OK}` : `Faltam ${pontoEquilibrio-totalCookies} cookies para bater a meta.`}</p>` : ""}
-    </div>
-    <div class="recipe">
+    <div class="cartao c7">
       <h2>Últimas vendas</h2>
       <table><thead><tr><th>Data</th><th>Sabor</th><th class="qty">Qtd</th><th></th></tr></thead>
       <tbody>${historico || `<tr><td colspan="4" style="opacity:0.6;">Nenhuma venda registrada ainda</td></tr>`}</tbody></table>
+    </div>
     </div>
   `;
 
@@ -1904,8 +2276,13 @@ function renderVendas(){
       .filter(([sid,q])=> saldoDe("assados", sid) < q)
       .map(([sid,q])=> `${NOME_SABOR[sid]||sid}: tem ${saldoDe("assados", sid)}, a venda precisa de ${q}`);
     const embalagensUsadas = {};
-    itensExtras.forEach(it=>{
-      if (it.porCookie) embalagensUsadas[it.nome] = qtdTotalCookies;
+    Object.entries(cookiesUsados).forEach(([sid, q])=>{
+      const sb = sabores.find(x=>x.id === sid);
+      if (sb && Array.isArray(sb.emb) && sb.emb.length){
+        sb.emb.forEach(e=>{ embalagensUsadas[e.nome] = (embalagensUsadas[e.nome] || 0) + (parseFloat(e.qtd) || 0) * q; });
+      } else {
+        itensExtras.forEach(it=>{ if (it.porCookie) embalagensUsadas[it.nome] = (embalagensUsadas[it.nome] || 0) + q; });
+      }
     });
     el.querySelectorAll(".venda-extra-manual").forEach(inp=>{
       const v = parseFloat(inp.value);
@@ -2107,6 +2484,10 @@ function salvarEdicaoCaixa(id, campos){
   const l = historicoCaixa.find(x=>x.id === id);
   if (!l || isNaN(campos.valor) || campos.valor <= 0) return false;
   l.valor = campos.valor;
+  if (l.vendaId && campos.ligarVenda && caixaDaVenda(l.vendaId).length === 1){   // opcional: a venda acompanha o Caixa
+    const v = historicoVendas.find(x=>x.id === l.vendaId);
+    if (v){ v.valor = campos.valor; saveVendas(historicoVendas); }
+  }
   l.categoria = campos.categoria || l.categoria;
   l.descricao = campos.descricao;
   if (campos.dataISO){ l.dataISO = campos.dataISO; l.data = isoParaBR(campos.dataISO); }
@@ -2137,7 +2518,9 @@ function renderCaixa(){
         + (cats[l.categoria] ? "" : `<option value="${esc(l.categoria)}" selected>${esc(String(l.categoria))}</option>`);
       const origem = l.contaChave ? "Esse lançamento é o pagamento de uma conta: valor e data também mudam na conta."
         : (l.compraId ? "Esse lançamento veio de uma compra: a mudança vale só no Caixa, não mexe no estoque nem no custo."
-        : (l.vendaId ? "Esse lançamento veio de uma venda: a mudança vale só no Caixa, não mexe na venda." : ""));
+        : (l.vendaId ? (caixaDaVenda(l.vendaId).length === 1 && historicoVendas.some(v=>v.id === l.vendaId)
+          ? `<label style="display:flex; gap:.5rem; align-items:flex-start;"><input type="checkbox" class="ed-venda" checked> <span>Atualizar também o valor da venda (a receita e o lucro do Painel acompanham). Desmarque para mudar só o Caixa.</span></label>`
+          : "Esse lançamento veio de uma venda: a mudança vale só no Caixa, não mexe na venda.") : ""));
       return `<div class="mov-edit" data-id="${l.id}">
         <div class="mov-edit-grid">
           <label>Data<input type="date" class="ed-data" value="${dataISODeLancamento(l)}"></label>
@@ -2162,11 +2545,12 @@ function renderCaixa(){
   }).join("");
 
   el.innerHTML = `
-    ${saldo < 0 ? `<div class="recipe" style="display:flex; align-items:center; gap:0.7rem; border-color:var(--wine);">
+    <div class="p-grade">
+    ${saldo < 0 ? `<div class="cartao c12" style="display:flex; align-items:center; gap:0.7rem; border-color:var(--wine);">
       <div style="width:14px; height:14px; border-radius:50%; background:var(--wine); flex-shrink:0;"></div>
       <div style="font-size:0.95rem; color:var(--wine);">Caixa no vermelho — saiu mais dinheiro do que entrou até agora.</div>
     </div>` : ""}
-    <div class="recipe">
+    <div class="cartao c12">
       <h2>Saldo em caixa</h2>
       <div class="summary">
         <div><span class="label">Saldo atual</span><span class="value" style="${saldo<0?'color:var(--wine);':''}">R$ ${saldo.toFixed(2)}</span></div>
@@ -2177,11 +2561,11 @@ function renderCaixa(){
       ${(rc.pend+rc.pendAnt) > 0 ? `<p style="font-size:0.85rem; margin-top:0.5rem; ${rc.livre<0?'color:var(--wine);':'opacity:0.8;'}">${rc.livre<0 ? `O caixa não cobre as contas pendentes: faltam R$ ${(-rc.livre).toFixed(2)}.` : `Já separando as contas pendentes, sobram R$ ${rc.livre.toFixed(2)} livres.`} <a href="#" onclick="irPara('contas'); return false;" style="color:var(--wine);">Ver contas do mês</a></p>` : ""}
       ${devido > 0 ? `<p style="font-size:0.85rem; opacity:0.75; margin-top:0.5rem;">A empresa ainda deve R$ ${devido.toFixed(2)} de aportes que entraram e ainda não voltaram.</p>` : ""}
     </div>
-    <div class="recipe">
+    <div class="cartao c5">
       <h2>Registrar movimento</h2>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
         <div style="display:flex; gap:0.6rem;">
-          <button class="caixa-tipo-btn active" data-tipo="entrada" style="flex:1; border:1px solid #5F7F4F; background:#5F7F4F; color:#fff; border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Entrada</button>
+          <button class="caixa-tipo-btn active" data-tipo="entrada" style="flex:1; border:1px solid #3F7D4F; background:#3F7D4F; color:#fff; border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Entrada</button>
           <button class="caixa-tipo-btn" data-tipo="saida" style="flex:1; border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.5rem; cursor:pointer; font-family:inherit;">Saída</button>
         </div>
         <select id="caixa-categoria" style="padding:0.5rem; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--ink); font-family:inherit;">
@@ -2197,9 +2581,10 @@ function renderCaixa(){
         <button id="caixa-salvar" style="border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.5rem; cursor:pointer;">Registrar</button>
       </div>
     </div>
-    <div class="recipe">
+    <div class="cartao c7">
       <h2>Últimos movimentos</h2>
       <div class="mov-lista">${historico || `<div class="mov-vazio">Nenhum movimento registrado ainda</div>`}</div>
+    </div>
     </div>
   `;
 
@@ -2220,8 +2605,8 @@ function renderCaixa(){
       tipoAtual = btn.dataset.tipo;
       el.querySelectorAll(".caixa-tipo-btn").forEach(b=>{
         const ativo = b===btn;
-        b.style.background = ativo ? (tipoAtual==="entrada" ? "#5F7F4F" : "var(--wine)") : "transparent";
-        b.style.color = ativo ? "#fff" : (b.dataset.tipo==="entrada" ? "#5F7F4F" : "var(--wine)");
+        b.style.background = ativo ? (tipoAtual==="entrada" ? "#3F7D4F" : "var(--wine)") : "transparent";
+        b.style.color = ativo ? "#fff" : (b.dataset.tipo==="entrada" ? "#3F7D4F" : "var(--wine)");
       });
       const cats = tipoAtual==="entrada" ? CATEGORIAS_ENTRADA : CATEGORIAS_SAIDA;
       selectCat.innerHTML = Object.entries(cats).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
@@ -2262,7 +2647,8 @@ function renderCaixa(){
       dataISO: box.querySelector(".ed-data").value,
       valor: parseFloat(box.querySelector(".ed-valor").value),
       categoria: box.querySelector(".ed-cat").value,
-      descricao: box.querySelector(".ed-desc").value.trim()
+      descricao: box.querySelector(".ed-desc").value.trim(),
+      ligarVenda: !!(box.querySelector(".ed-venda") && box.querySelector(".ed-venda").checked)
     });
     if (!ok){ alert("Confira o valor: precisa ser um número maior que zero."); return; }
     caixaEditandoId = null; renderCaixa();
@@ -2288,7 +2674,7 @@ function renderCaixa(){
 // Custo do cookie só com massa + recheio (sem embalagem; a embalagem é contada à parte, pelo que foi usado na venda)
 function custoSemEmbalagemDoSabor(s){
   const c = custoPorCookieDoSabor(s);
-  return c === null ? null : c - custoEmbalagemPorCookie();
+  return c === null ? null : c - embalagemDoSabor(s);
 }
 function cookiesDaVenda(v){
   const r = {};
@@ -2425,7 +2811,7 @@ function cartaoEstoqueEmFalta(){
   const f = itensEmFalta();
   if (!f.length) return "";
   const neg = f.filter(x=>x.tipo === "negativo"), zer = f.filter(x=>x.tipo === "zerado");
-  return `<div class="recipe" style="border-color:var(--wine);">
+  return `<div class="cartao c12" style="border-color:var(--neg);">
     <h2>Atenção no estoque</h2>
     ${neg.length ? `<p style="font-size:0.9rem; color:var(--wine);"><b>Negativo:</b> ${neg.map(x=>`${esc(x.nome)} (${fmtQtdCompra(x.un, x.qtd)})`).join(", ")}.</p>
     <p style="font-size:0.82rem; opacity:0.8; margin-top:0.3rem;">Negativo quer dizer que o app descontou mais do que você disse que tinha. Ou faltou registrar uma compra, ou a contagem está desatualizada. Registre a compra em Comprar ou digite a contagem real abaixo.</p>` : ""}
@@ -2527,7 +2913,7 @@ function cartaoPrecosItens(){
       <td style="text-align:right;"><button class="btn-sec cp-corrigir" data-nome="${esc(nome)}" type="button" style="padding:0.2rem 0.55rem; font-size:0.78rem;">Corrigir</button></td>
     </tr>`;
   }).join("");
-  return `<div class="recipe">
+  return `<div class="cartao c7">
     <h2>Preço de cada item</h2>
     <div class="sub">Custo médio: o app refaz a cada compra, juntando o que ainda tem no estoque com o que você acabou de pagar. Este é o único lugar dos preços.</div>
     <table class="tabela-real" style="margin-top:0.5rem;"><thead><tr><th>Item</th><th class="price" style="text-align:right;">Custo médio</th><th class="price" style="text-align:right;">Último pago</th><th></th></tr></thead><tbody>${linhas}</tbody></table>
@@ -2546,8 +2932,9 @@ function renderComprar(aviso){
   const ultimas = historicoCompras.slice().reverse().slice(0, 12);
 
   el.innerHTML = `
-    ${aviso ? `<div class="recipe" style="border-color:#5F7F4F;"><div style="font-size:0.92rem; line-height:1.4;">${aviso}</div></div>` : ""}
-    <div class="recipe">
+    <div class="p-grade">
+    ${aviso ? `<div class="cartao c12" style="border-color:var(--ok);"><div style="font-size:0.92rem; line-height:1.4;">${aviso}</div></div>` : ""}
+    <div class="cartao c6">
       <h2>Registrar compra</h2>
       <div class="sub">O app soma no estoque, refaz o custo médio e lança a saída no Caixa.</div>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.7rem;">
@@ -2568,7 +2955,7 @@ function renderComprar(aviso){
       </div>
     </div>
 
-    <div class="recipe" id="nota-card">
+    <div class="cartao c6" id="nota-card">
       <h2>Ler nota ou foto da compra</h2>
       <div class="sub">Tire foto da nota fiscal: o app lê os itens e você confere antes de aplicar</div>
       <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.6rem;">
@@ -2581,7 +2968,7 @@ function renderComprar(aviso){
 
     ${cartaoPrecosItens()}
 
-    <div class="recipe">
+    <div class="cartao c5">
       <h2>Últimas compras</h2>
       ${ultimas.length ? `<div class="contas-grid" style="margin-top:0.6rem;">${ultimas.map(c=>`
         <div class="conta-card">
@@ -2590,6 +2977,7 @@ function renderComprar(aviso){
           <div style="font-size:0.75rem; opacity:0.7;">${c.caixaId ? "Saída lançada no Caixa" : "Não foi para o Caixa"}</div>
           <div class="conta-acoes"><button class="btn-sec cp-editar" data-id="${c.id}" type="button">Editar data</button><button class="btn-sec cp-desfazer" data-id="${c.id}" type="button">Desfazer</button></div>
         </div>`).join("")}</div>` : `<div style="opacity:0.6; margin-top:0.5rem;">Nenhuma compra registrada ainda.</div>`}
+    </div>
     </div>
   `;
 
@@ -2962,14 +3350,17 @@ function renderContas(){
   }).join("");
 
   el.innerHTML = `
+    <div class="p-grade">
+    <div style="grid-column:1/-1;">
     <div class="mes-nav">
       <button class="btn-sec" id="contas-ant" type="button">‹</button>
       <div class="titulo">${nomeMes(mes)}</div>
       <button class="btn-sec" id="contas-prox" type="button">›</button>
     </div>
     ${!ehAtual ? `<div style="text-align:center; margin:-0.4rem 0 0.8rem;"><button class="btn-sec" id="contas-hoje" type="button">Voltar para o mês atual</button></div>` : ""}
+    </div>
 
-    <div class="recipe" style="${ehAtual && rc.livre < 0 ? "border-color:var(--wine);" : ""}">
+    <div class="cartao ${ehAtual ? "c7" : "c12"}" style="${ehAtual && rc.livre < 0 ? "border-color:var(--wine);" : ""}">
       <h2>${ehAtual ? "Dinheiro livre" : "Resumo do mês"}</h2>
       <div class="summary">
         ${ehAtual ? `
@@ -2988,7 +3379,7 @@ function renderContas(){
     </div>
 
     ${ehAtual ? `
-    <div class="recipe">
+    <div class="cartao c5">
       <h2>Posso comprar?</h2>
       <div class="sub">Antes de gastar, veja quanto sobra para as contas do mês.</div>
       <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
@@ -2998,12 +3389,12 @@ function renderContas(){
       <div id="sim-res" style="font-size:0.9rem; margin-top:0.6rem; min-height:1.2em;"></div>
     </div>` : ""}
 
-    <div class="recipe">
+    <div class="cartao c12">
       <h2>Contas de ${nomeMes(mes)}</h2>
       ${lista.length ? `<div class="contas-grid">${cards}</div>` : `<p style="font-size:0.9rem; opacity:0.7;">Nenhuma conta neste mês.</p>`}
     </div>
 
-    <div class="recipe">
+    <div class="cartao c6">
       <h2>Adicionar conta avulsa</h2>
       <div class="sub">Para uma conta só deste mês (fornecedor, manutenção, parcela...). As fixas ficam em Config.</div>
       <div style="display:flex; flex-direction:column; gap:0.5rem;">
@@ -3015,6 +3406,7 @@ function renderContas(){
         <div id="av-msg" style="font-size:0.85rem; color:var(--wine);"></div>
         <button id="av-add" class="btn-pri" type="button">Adicionar conta</button>
       </div>
+    </div>
     </div>
   `;
 
@@ -3108,23 +3500,61 @@ function renderContas(){
 }
 
 // ---- Painel ----
-// Dados parciais: primeiro dia do mês que já tem registro (vendas, fornadas, moldagens, compras, Caixa sem contas fixas)
-function primeiroDiaRegistrado(mes){
-  const datas = [];
-  const add = d=>{ if (d && String(d).slice(0,7)===mes) datas.push(String(d).slice(0,10)); };
-  historicoVendas.forEach(v=> add(v.dataISO));
-  historicoProducao.forEach(f=> add(f.dataISO || (f.data ? f.data.split("/").reverse().join("-") : "")));
-  historicoMoldados.forEach(m=> add(m.dataISO));
-  historicoCompras.forEach(c=> add(c.dataISO));
-  historicoCaixa.forEach(l=>{ if (l.categoria !== "conta") add(l.dataISO); });
-  if (!datas.length) return null;
-  datas.sort();
-  return parseInt(datas[0].slice(8,10), 10);
+// ---- Painel: gráficos pequenos em SVG (sem biblioteca) ----
+function kCurto(v){
+  if (Math.abs(v) >= 1000) return (v/1000).toLocaleString("pt-BR", {maximumFractionDigits:1}) + " mil";
+  return Math.round(v).toLocaleString("pt-BR");
+}
+function iconePainel(tipo){
+  const t = {
+    caixa:  '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>',
+    lucro:  '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    cookie: '<circle cx="12" cy="12" r="9"/><path d="M9 9v.01M15 10v.01M10 15v.01M15 15v.01"/>',
+    contas: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'
+  }[tipo] || "";
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${t}</svg>`;
+}
+const SETA_PEQ = '<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><path d="M5 1l4 7H1z"/></svg>';
+// Linha da receita + área da sobra, somando dia a dia (só até hoje)
+function graficoAcumulado(recAcum, sobraAcum, diasNoMes){
+  const W = 560, H = 210, L = 46, R = 12, T = 12, B = 26;
+  const maxV = Math.max(1, ...recAcum, ...sobraAcum);
+  let topo = 1;
+  for (let k = Math.pow(10, Math.floor(Math.log10(maxV))); ; k *= 10){
+    const c = [1, 2, 2.5, 5, 10].map(m=> m*k).find(v=> v >= maxV);
+    if (c){ topo = c; break; }
+  }
+  const X = d => L + (d-1) / Math.max(1, diasNoMes-1) * (W-L-R);
+  const Y = v => T + (1 - Math.max(0, v)/topo) * (H-T-B);
+  const n = recAcum.length;
+  const pts = arr => arr.map((v,i)=> `${X(i+1).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const base = Y(0).toFixed(1);
+  const area = `M${X(1).toFixed(1)},${base} L${pts(sobraAcum).replace(/ /g," L")} L${X(n).toFixed(1)},${base} Z`;
+  const grade = [0, topo/2, topo].map(v=> `<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" style="stroke:rgba(176,141,87,.3)" stroke-dasharray="3 4"/><text x="${L-6}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end" font-size="11" style="fill:var(--ink)" opacity=".65">${kCurto(v)}</text>`).join("");
+  const dias = [...new Set([1, 8, 15, 22, diasNoMes])].filter(d=> d <= diasNoMes);
+  const xl = dias.map(d=> `<text x="${X(d).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="11" style="fill:var(--ink)" opacity=".65">${d}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Receita e sobra das vendas no mês, somadas dia a dia">${grade}${xl}
+    <path d="${area}" style="fill:var(--g3)" opacity=".22"/>
+    <polyline points="${pts(sobraAcum)}" fill="none" style="stroke:var(--g3)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="${pts(recAcum)}" fill="none" style="stroke:var(--g1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(n).toFixed(1)}" cy="${Y(recAcum[n-1]).toFixed(1)}" r="4" style="fill:var(--g1)"/>
+    <circle cx="${X(n).toFixed(1)}" cy="${Y(sobraAcum[n-1]).toFixed(1)}" r="4" style="fill:var(--g3)"/></svg>`;
+}
+function roscaSVG(fatias, centro){
+  const total = fatias.reduce((s,f)=> s + f.valor, 0);
+  let acum = 0;
+  const arcos = fatias.filter(f=> f.valor > 0).map(f=>{
+    const pct = f.valor / total * 100;
+    const s = `<circle cx="21" cy="21" r="15.9155" fill="none" style="stroke:${f.cor}" stroke-width="6" stroke-dasharray="${pct.toFixed(3)} ${(100-pct).toFixed(3)}" stroke-dashoffset="${(25-acum).toFixed(3)}"/>`;
+    acum += pct;
+    return s;
+  }).join("");
+  return `<svg viewBox="0 0 42 42" role="img" aria-label="Custos do mês por tipo"><circle cx="21" cy="21" r="15.9155" fill="none" style="stroke:rgba(176,141,87,.2)" stroke-width="6"/>${arcos}<text x="21" y="20.2" text-anchor="middle" font-size="3.4" style="fill:var(--ink)" opacity=".7">Custos</text><text x="21" y="25.4" text-anchor="middle" font-size="4.4" font-weight="700" style="fill:var(--ink)">${centro}</text></svg>`;
 }
 
 function renderPainel(){
   const el = document.getElementById("painel");
-  const nomesSabor = {choco:"Choco Ruth", nut:"Nut Ruth", kinder:"Kinder Ruth", croc:"Croc Ruth"};
+  const nomesSabor = NOME_SABOR;
   const mAtual = mesAtual();
 
   // Vendas e receita do mês
@@ -3169,8 +3599,9 @@ function renderPainel(){
   const margemMedia = margens.length ? margens.reduce((a,b)=>a+b,0)/margens.length : null;
   const pontoEquilibrio = margemMedia && margemMedia>0 ? Math.ceil(totalFixo/margemMedia) : null;
   // Mês parcial: se os registros começaram depois do dia 1, as contas fixas entram só pelos dias registrados
-  const diasNoMesP = new Date(parseInt(mAtual.slice(0,4),10), parseInt(mAtual.slice(5,7),10), 0).getDate();
-  const diaIni = primeiroDiaRegistrado(mAtual);
+  const mAtualP = mesAtual();
+  const diasNoMesP = new Date(parseInt(mAtualP.slice(0,4),10), parseInt(mAtualP.slice(5,7),10), 0).getDate();
+  const diaIni = primeiroDiaRegistrado(mAtualP);
   const diaHojeP = Math.min(parseInt(hojeISO().slice(8,10),10) || diasNoMesP, diasNoMesP);
   const parcial = diaIni !== null && diaIni > 1 && diaIni <= diaHojeP;
   const diasRegistrados = parcial ? (diaHojeP - diaIni + 1) : diasNoMesP;
@@ -3205,7 +3636,7 @@ function renderPainel(){
   // Outros avisos (o que não é compra)
   let acoes = [];
   if (!algumEstoqueCadastrado) acoes.push(`Estoque ainda não foi cadastrado: preencha em Estoque para o app saber o que falta`);
-  if (pctPerda!==null && pctPerda > 10) acoes.push(`Perda do mês em ${pctPerda.toFixed(0)}% (R$ ${custoDesperdicioMes.toFixed(2)} em ingrediente perdido): vale olhar o forno ou a receita`);
+  if (pctPerda!==null && pctPerda > 10) acoes.push(`Perda do mês em ${pctPerda.toFixed(0)}% (${brl(custoDesperdicioMes)} em ingrediente perdido): vale olhar o forno ou a receita`);
   if (sabores.some(s=>isNaN(parseFloat(precosVenda[s.id])))) acoes.push(`Tem sabor sem preço de venda definido: confira em Config`);
   if (custoPorCookieDoSabor(sabores.find(s=>s.id==="kinder")) === null) acoes.push(`Recheio do Kinder Ruth ainda não tem gramatura/preço definidos`);
 
@@ -3216,7 +3647,7 @@ function renderPainel(){
     const diaDoMes = new Date().getDate();
     const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
     const proporcaoEsperada = diaDoMes / diasNoMes;
-    if (proporcao >= 1) status = {cor:"#5F7F4F", texto:"Mês indo bem — meta batida"};
+    if (proporcao >= 1) status = {cor:"#3F7D4F", texto:"Mês indo bem — meta batida"};
     else if (proporcao >= proporcaoEsperada * 0.8) status = {cor:"#C79A2B", texto:"No ritmo, mas de olho"};
     else status = {cor:"var(--wine)", texto:"Abaixo do ritmo esperado pro mês"};
   }
@@ -3226,67 +3657,132 @@ function renderPainel(){
   const temContas = contasDoMes(mAtual).length > 0;
   const totalAssados = sabores.reduce((t,s)=> t + saldoDe("assados", s.id), 0);
   const totalCongelados = sabores.reduce((t,s)=> t + saldoDe("congelados", s.id), 0);
-  const corLucro = lucroRealMes < 0 ? "var(--wine)" : "#5F7F4F";
+  const corLucro = lucroRealMes < 0 ? "var(--wine)" : "#3F7D4F";
   const grande = "font-size:1.6rem; font-weight:700; line-height:1.2;";
   const nota = "font-size:0.85rem; opacity:0.8; margin-top:0.3rem; line-height:1.45;";
   const verTudo = (dest, txt)=> `<div style="margin-top:0.6rem;"><button class="btn-sec" type="button" onclick="irPara('${dest}')">${txt}</button></div>`;
 
+  // ---- Dados dos gráficos e dos cartões da tela Hoje ----
+  const [anoM, mesM] = mAtual.split("-").map(Number);
+  const diasNoMes = new Date(anoM, mesM, 0).getDate();
+  const ateDia = Math.min(new Date().getDate(), diasNoMes);
+  const recDia = new Array(diasNoMes).fill(0), sobraDia = new Array(diasNoMes).fill(0);
+  const vendidosPorSabor = {};
+  let temVendasMes = false;
+  historicoVendas.forEach(v=>{
+    if (!v.dataISO || v.dataISO.slice(0,7) !== mAtual) return;
+    const d = parseInt(v.dataISO.slice(8,10), 10) - 1;
+    if (d < 0 || d >= diasNoMes) return;
+    temVendasMes = true;
+    const rec = valorDaVenda(v);
+    recDia[d] += rec;
+    if (typeof v.custoIng === "number") sobraDia[d] += rec - v.custoIng - (v.custoEmb || 0);
+    Object.entries(cookiesDaVenda(v)).forEach(([sid, q])=>{ vendidosPorSabor[sid] = (vendidosPorSabor[sid] || 0) + q; });
+  });
+  const recAcum = [], sobraAcum = [];
+  let ar = 0, as = 0;
+  for (let i = 0; i < ateDia; i++){ ar += recDia[i]; as += sobraDia[i]; recAcum.push(ar); sobraAcum.push(as); }
+  // mesma fatia do mês passado (dia 1 até hoje), para a seta de variação
+  const mAnt = somaMes(mAtual, -1);
+  let receitaAntMesmoPeriodo = 0;
+  historicoVendas.forEach(v=>{
+    if (v.dataISO && v.dataISO.slice(0,7) === mAnt && parseInt(v.dataISO.slice(8,10), 10) <= ateDia) receitaAntMesmoPeriodo += valorDaVenda(v);
+  });
+  const deltaRec = receitaAntMesmoPeriodo > 0 ? (receitaMes / receitaAntMesmoPeriodo - 1) * 100 : null;
+  const chipDelta = deltaRec === null ? "" : (deltaRec >= 0
+    ? `<span class="sobe">${SETA_PEQ} ${deltaRec.toLocaleString("pt-BR",{maximumFractionDigits:1})}%</span>`
+    : `<span class="desce">${SETA_PEQ} ${Math.abs(deltaRec).toLocaleString("pt-BR",{maximumFractionDigits:1})}%</span>`) + " <span style=\"opacity:.7;\">vs mesmo período do mês passado</span>";
+  const rankSabores = sabores.map(s=>({ nome: nomesSabor[s.id] || s.id, qtd: vendidosPorSabor[s.id] || 0 })).sort((a,b)=> b.qtd - a.qtd);
+  const maxQtd = Math.max(1, ...rankSabores.map(r=> r.qtd));
+  const fatias = [
+    {nome:"Ingredientes dos vendidos", valor:custoIngVendidosMes, cor:"var(--g1)"},
+    {nome:"Embalagens", valor:custoEmbMes, cor:"var(--g2)"},
+    {nome:"Queimados", valor:custoDesperdicioMes, cor:"var(--g3)"},
+    {nome: parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês", valor:fixoMesUsado, cor:"var(--g4)"}
+  ];
+  const totalCustos = fatias.reduce((s,f)=> s + f.valor, 0);
+  const dataBruta = new Date().toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
+  const dataTxt = dataBruta.charAt(0).toUpperCase() + dataBruta.slice(1);
+  const avisoBackup = avisoBackupPainel();
+  const kpi = (destino, icone, rotulo, num, det, corNum)=>
+    `<div class="cartao kpi" onclick="irPara('${destino}')" style="cursor:pointer;"><div class="ic">${iconePainel(icone)}</div><div><div class="rot">${rotulo}</div><div class="num"${corNum ? ` style="color:${corNum};"` : ""}>${num}</div><div class="det">${det}</div></div></div>`;
+  const contasAPagar = rc.pend + rc.pendAnt;
+  const detContas = !temContas ? "Nenhuma conta cadastrada neste mês"
+    : (rc.livre < 0 ? `<span class="neg">O Caixa não cobre: faltam ${brl(-rc.livre)}</span>`
+      : (contasAPagar === 0 ? "Todas as contas do mês estão pagas" : `Separando as contas, sobram ${brl(rc.livre)} livres`));
+
   el.innerHTML = `
-    <div class="recipe" style="display:flex; align-items:center; gap:0.7rem;">
-      <div style="width:14px; height:14px; border-radius:50%; background:${status.cor}; flex-shrink:0;"></div>
-      <div style="font-size:0.95rem;">${status.texto}</div>
-    </div>
-    <div class="recipe" style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-      <button id="atalho-fornada" style="flex:1; min-width:140px; border:1px solid var(--wine); background:var(--wine); color:var(--cream); border-radius:6px; padding:0.6rem; cursor:pointer; font-family:inherit;">Registrar fornada</button>
-      <button id="atalho-venda" style="flex:1; min-width:140px; border:1px solid var(--wine); background:transparent; color:var(--wine); border-radius:6px; padding:0.6rem; cursor:pointer; font-family:inherit;">Registrar venda</button>
-      ${atalhosExtras.map((a,i)=>`<button class="atalho-extra" data-i="${i}" style="flex:1; min-width:140px; border:1px solid var(--gold); background:transparent; color:var(--ink); border-radius:6px; padding:0.6rem; cursor:pointer; font-family:inherit;">${esc(a.nome)}</button>`).join("")}
-    </div>
-    ${avisoBackupPainel()}
-    <div class="recipe" style="${rc.livre < 0 && temContas ? "border-color:var(--wine);" : ""}">
-      <h2>Tenho dinheiro?</h2>
-      <div style="${grande}${rc.saldo < 0 ? "color:var(--wine);" : ""}">${brl(rc.saldo)}</div>
-      <div style="${nota}">no Caixa agora.${temContas ? (rc.livre < 0
-        ? ` <span style="color:var(--wine);">Não cobre as contas pendentes: faltam ${brl(-rc.livre)}.</span>`
-        : (rc.pend + rc.pendAnt === 0 ? " Todas as contas do mês estão pagas." : ` Separando as contas pendentes, sobram ${brl(rc.livre)} livres.`)) : ""}</div>
-      ${verTudo("caixa", "Abrir Caixa")}
-    </div>
-    <div class="recipe">
-      <h2>Preciso comprar algo?</h2>
-      ${listaCompra.length
-        ? `<div style="${grande}">${listaCompra.length} ${listaCompra.length === 1 ? "item" : "itens"}</div><div style="${nota}">${listaCompra.slice(0,4).join(", ")}${listaCompra.length > 4 ? ` e mais ${listaCompra.length - 4}` : ""}.</div>`
-        : `<div style="${grande}">Nada urgente</div><div style="${nota}">Nenhum item zerado ou negativo no estoque.</div>`}
-      ${verTudo("comprar", "Abrir Comprar")}
-    </div>
-    <div class="recipe">
-      <h2>Quantos cookies prontos?</h2>
-      <div style="${grande}">${totalAssados} assados</div>
-      <div style="${nota}">prontos para vender. ${totalCongelados} congelados esperando forno.${algumEstoqueCadastrado ? ` Com o estoque de hoje dá para moldar até ${totalDaPraFazer} a mais.` : ""}</div>
-      ${verTudo("cookies", "Ver por sabor")}
-    </div>
-    <div class="recipe">
-      <h2>Estou tendo lucro de verdade?</h2>
-      <div style="${grande} color:${corLucro};">${brl(lucroRealMes)}</div>
-      <div style="${nota}">até agora neste mês, já descontando custo do que vendeu, queimados e ${parcial ? "as contas fixas só dos dias registrados" : "as contas fixas do mês inteiro"}.</div>
-      ${parcial ? `<p style="font-size:0.85rem; color:var(--wine); margin-top:0.4rem;"><strong>Dados parciais desde o dia ${diaIni}.</strong> São ${diasRegistrados} de ${diasNoMesP} dias do mês, então só ${brl(fixoMesUsado)} das contas fixas (de ${brl(totalFixo)}) entraram na conta.</p>` : ""}
-      ${vendasSemCusto ? `<p style="font-size:0.82rem; color:var(--wine); margin-top:0.4rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente: registre a compra na aba Comprar). O lucro pode estar maior do que o real.</p>` : ""}
-      <div style="margin-top:0.7rem;">
-        <div style="font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gold); font-weight:700;">Como chegou nesse número</div>
-        <div class="summary" style="margin-top:0.5rem;">
-          <div><span class="label">Vendidos</span><span class="value">${vendidosMes} cookies</span></div>
-          <div><span class="label">Receita</span><span class="value">${brl(receitaMes)}</span></div>
-          <div><span class="label">Ingredientes dos vendidos</span><span class="value">${brl(custoIngVendidosMes)}</span></div>
-          <div><span class="label">Embalagens</span><span class="value">${brl(custoEmbMes)}</span></div>
-          <div><span class="label">Queimados</span><span class="value" style="${custoDesperdicioMes>0?'color:var(--wine);':''}">${brl(custoDesperdicioMes)}</span></div>
-          <div><span class="label">${parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês"}</span><span class="value">${brl(fixoMesUsado)}</span></div>
+    <div class="p-grade">
+      <div class="p-topo">
+        <div>
+          <h2>Hoje na Casa Ruth</h2>
+          <div class="p-data">${dataTxt}</div>
+          <div class="p-estado"><i style="background:${status.cor};"></i>${status.texto}</div>
         </div>
-        ${vendasEstimadas ? `<p style="font-size:0.8rem; opacity:0.7; margin-top:0.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
+        <div class="p-atalhos">
+          <button id="atalho-fornada" class="btn-pri" type="button">Registrar fornada</button>
+          <button id="atalho-venda" class="btn-sec" type="button">Registrar venda</button>
+          ${atalhosExtras.map((a,i)=>`<button class="atalho-extra btn-sec" data-i="${i}" type="button">${esc(a.nome)}</button>`).join("")}
+        </div>
       </div>
-      ${verTudo("preco", "Ver preço e margem")}
+      ${avisoBackup ? `<div style="grid-column:1/-1;">${avisoBackup}</div>` : ""}
+      ${kpi("caixa", "caixa", "No Caixa agora", brl(rc.saldo), "Tenho dinheiro? Toque para abrir o Caixa", rc.saldo < 0 ? "var(--neg)" : "")}
+      ${kpi("preco", "lucro", "Lucro real do mês", brl(lucroRealMes), `Receita ${brl(receitaMes)}${chipDelta ? "<br>" + chipDelta : ""}`, lucroRealMes < 0 ? "var(--neg)" : "var(--ok)")}
+      ${kpi("cookies", "cookie", "Cookies prontos", `${totalAssados} <small>assados</small>`, `${totalCongelados} congelados esperando forno`)}
+      ${kpi("contas", "contas", "Contas a pagar", brl(contasAPagar), detContas)}
+
+      <div class="cartao c8 grafico">
+        <h3>Receita e sobra das vendas no mês</h3>
+        <div class="sub">Somando dia a dia. Sobra = receita menos ingredientes e embalagens, antes das contas fixas.</div>
+        ${temVendasMes ? `${graficoAcumulado(recAcum, sobraAcum, diasNoMes)}
+        <div style="display:flex; gap:1.1rem; flex-wrap:wrap; margin-top:.4rem;"><span class="leg"><i style="background:var(--g1);"></i>Receita</span><span class="leg"><i style="background:var(--g3);"></i>Sobra das vendas</span></div>` : `<div class="vazio-msg">Nenhuma venda registrada neste mês ainda.</div>`}
+      </div>
+      <div class="cartao c4">
+        <h3>Para onde foi o dinheiro</h3>
+        <div class="sub">Custos deste mês</div>
+        ${totalCustos > 0 ? `<div class="rosca-caixa">${roscaSVG(fatias, "R$ " + kCurto(totalCustos))}
+          <div style="flex:1; min-width:150px;">${fatias.map(f=>`<div class="leg"><i style="background:${f.cor};"></i>${f.nome}<b>${brl(f.valor)}</b></div>`).join("")}</div></div>` : `<div class="vazio-msg">Sem custos lançados neste mês.</div>`}
+      </div>
+
+      <div class="cartao c4">
+        <h3>Sabores mais vendidos</h3>
+        <div class="sub">Cookies vendidos neste mês (combos entram por sabor)</div>
+        ${rankSabores.map(r=>`<div class="rank"><span>${esc(r.nome)}</span><div class="bar"><i style="width:${(r.qtd/maxQtd*100).toFixed(0)}%;"></i></div><b>${r.qtd}</b></div>`).join("")}
+      </div>
+      <div class="cartao c4">
+        <h3>Preciso comprar algo?</h3>
+        ${listaCompra.length
+          ? `<div class="sub">${listaCompra.length} ${listaCompra.length === 1 ? "item zerado ou negativo" : "itens zerados ou negativos"}</div><ul class="lista-simples">${listaCompra.slice(0,6).map(x=>`<li>${x}</li>`).join("")}</ul>${listaCompra.length > 6 ? `<div class="sub">e mais ${listaCompra.length - 6}</div>` : ""}`
+          : `<div class="sub">Nada urgente</div><div class="vazio-msg" style="padding-top:0;">Nenhum item zerado ou negativo no estoque.</div>`}
+        <div class="acoes"><button class="btn-sec" type="button" onclick="irPara('comprar')">Abrir Comprar</button></div>
+      </div>
+      <div class="cartao c4">
+        <h3>Quantos cookies prontos?</h3>
+        <div class="sub">Por sabor: assados prontos para vender e congelados esperando forno</div>
+        ${sabores.map(s=>{ const a = saldoDe("assados", s.id), c = saldoDe("congelados", s.id);
+          return `<div class="pronto-linha"><div>${esc(nomesSabor[s.id] || s.id)}</div><div><b${a < 0 ? ' class="neg"' : ""}>${a}</b> <span>assados · ${c} congelados</span></div></div>`; }).join("")}
+        ${algumEstoqueCadastrado ? `<div class="sub" style="margin-top:.6rem; margin-bottom:0;">Com o estoque de hoje dá para moldar até ${totalDaPraFazer} a mais.</div>` : ""}
+      </div>
+
+      <div class="cartao ${acoes.length ? "c6" : "c12"}">
+        <h3>Estou tendo lucro de verdade?</h3>
+        <div class="sub">Como chegou nesse número, neste mês</div>
+        <div class="linha-val"><span>Receita (${vendidosMes} cookies vendidos)</span><b>${brl(receitaMes)}</b></div>
+        <div class="linha-val"><span>Ingredientes dos vendidos</span><b>− ${brl(custoIngVendidosMes)}</b></div>
+        <div class="linha-val"><span>Embalagens</span><b>− ${brl(custoEmbMes)}</b></div>
+        <div class="linha-val"><span>Queimados</span><b${custoDesperdicioMes > 0 ? ' class="neg"' : ""}>− ${brl(custoDesperdicioMes)}</b></div>
+        <div class="linha-val"><span>${parcial ? `Contas fixas (${diasRegistrados} de ${diasNoMesP} dias)` : "Contas fixas do mês inteiro"}</span><b>− ${brl(fixoMesUsado)}</b></div>
+        <div class="linha-val total"><span>Lucro real até agora</span><b style="color:${corLucro === "var(--wine)" ? "var(--neg)" : "var(--ok)"};">${brl(lucroRealMes)}</b></div>
+        ${parcial ? `<p class="sub" style="margin-top:.6rem; color:var(--wine);"><strong>Dados parciais desde o dia ${diaIni}.</strong> São ${diasRegistrados} de ${diasNoMesP} dias do mês, então só ${brl(fixoMesUsado)} das contas fixas (de ${brl(totalFixo)}) entraram na conta.</p>` : ""}
+        ${vendasSemCusto ? `<p class="sub neg" style="margin-top:.6rem;">${vendasSemCusto} venda(s) do mês sem custo conhecido (falta preço de algum ingrediente: registre a compra na aba Comprar). O lucro pode estar maior do que o real.</p>` : ""}
+        ${vendasEstimadas ? `<p class="sub" style="margin-top:.4rem;">${vendasEstimadas} venda(s) antiga(s) deste mês usam o preço e o custo de hoje, porque foram feitas antes desta versão.</p>` : ""}
+        <div class="acoes"><button class="btn-sec" type="button" onclick="irPara('preco')">Ver preço e margem</button></div>
+      </div>
+      ${acoes.length ? `<div class="cartao c6">
+        <h3>Atenção</h3>
+        <ul class="lista-simples">${acoes.map(a=>`<li style="margin-bottom:.3rem;">${a}</li>`).join("")}</ul>
+      </div>` : ""}
     </div>
-    ${acoes.length ? `<div class="recipe">
-      <h2>Atenção</h2>
-      <ul style="margin:0.4rem 0 0; padding-left:1.2rem; font-size:0.9rem;">${acoes.map(a=>`<li style="margin-bottom:0.3rem;">${a}</li>`).join("")}</ul>
-    </div>` : ""}
   `;
 
   document.getElementById("atalho-fornada").addEventListener("click", ()=> irPara("producao"));
@@ -3312,7 +3808,7 @@ function renderPainel(){
 function estadoCompleto(){
   return {
     precos, estoque, recheioGramas, precosVenda, custosFixos, custosFixosExtras,
-    atalhosExtras, itensExtras, historicoProducao, historicoVendas, historicoCaixa,
+    atalhosExtras, itensExtras, produtosExtras, receitaExtra, historicoProducao, historicoVendas, historicoCaixa,
     tema: loadTheme(), rendimentoFornada: RENDIMENTO_FORNADA, combos,
     metaProducaoMensal, baseHistorica, sidebarPrefs, contasData,
     historicoMoldados, saldoCookies, historicoCompras
@@ -3353,6 +3849,8 @@ async function carregarDoBanco(){
       if (d.custosFixosExtras) custosFixosExtras = d.custosFixosExtras;
       if (d.atalhosExtras) atalhosExtras = d.atalhosExtras;
       if (d.itensExtras) itensExtras = d.itensExtras;
+      if (d.produtosExtras){ produtosExtras = d.produtosExtras; saveProdutosExtras(produtosExtras); sincronizarProdutosExtras(); }
+      if (d.receitaExtra){ receitaExtra = d.receitaExtra; saveReceitaExtra(receitaExtra); sincronizarProdutosExtras(); }
       if (d.historicoProducao) historicoProducao = d.historicoProducao;
       if (d.historicoVendas) historicoVendas = d.historicoVendas;
       if (d.historicoCaixa) historicoCaixa = d.historicoCaixa;
@@ -3411,6 +3909,7 @@ function irPara(view){
   if (view === "custo" || view === "financeiro") view = "preco"; // atalhos antigos
   if (!document.getElementById(`view-${view}`)) view = "painel";
   abaAtual = view;
+  document.body.dataset.tela = view;
   const grupo = grupoDaTela(view);
   ultimaTelaDoGrupo[grupo] = view;
   document.querySelectorAll("nav.tabs button[data-grupo]").forEach(b=>b.classList.toggle("active", b.dataset.grupo===grupo));
@@ -3800,6 +4299,65 @@ render();
 renderPainel();
 initSidebar();
 iniciarDb();
+
+// ---- Fundo interativo de cookies (só visual; não mexe em dados) ----
+(function fundoCookies(){
+  try{
+    const cv = document.getElementById("fundo-cookies"); if (!cv) return;
+    const ctx = cv.getContext("2d"); if (!ctx) return;
+    const parado = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let W=0, H=0, dpr=1, cookies=[], ponteiro={x:-999,y:-999}, rodando=true;
+    const cores = [["#C9904F","#9A6128"],["#B9793A","#85501F"],["#D3A263","#A06E34"],["#A9703A","#6E4322"]];
+    function criar(){
+      const n = W < 700 ? 9 : 16; cookies = [];
+      for (let i=0;i<n;i++){
+        const r = 22 + Math.random()*30;
+        const c = {x:Math.random()*W, y:Math.random()*H, r, vx:(Math.random()-.5)*.25, vy:-.1-Math.random()*.25,
+          ox:0, oy:0, vox:0, voy:0, rot:Math.random()*6.28, vr:(Math.random()-.5)*.004,
+          cor:cores[i%cores.length], gotas:[]};
+        const k = 5 + Math.floor(Math.random()*4);
+        for (let j=0;j<k;j++){ const a=Math.random()*6.28, d=Math.sqrt(Math.random())*r*.72; c.gotas.push([Math.cos(a)*d, Math.sin(a)*d, r*(.1+Math.random()*.08), Math.random()*6.28]); }
+        cookies.push(c);
+      }
+    }
+    function medir(){
+      dpr = Math.min(window.devicePixelRatio||1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+      criar(); desenhar();
+    }
+    function cookie(c){
+      const x=c.x+c.ox, y=c.y+c.oy;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(c.rot);
+      const g = ctx.createRadialGradient(-c.r*.3,-c.r*.3,c.r*.1,0,0,c.r);
+      g.addColorStop(0,c.cor[0]); g.addColorStop(1,c.cor[1]);
+      ctx.beginPath(); ctx.arc(0,0,c.r,0,6.283); ctx.fillStyle=g; ctx.fill();
+      ctx.lineWidth=1.2; ctx.strokeStyle="rgba(60,30,12,.35)"; ctx.stroke();
+      c.gotas.forEach(q=>{ ctx.save(); ctx.translate(q[0],q[1]); ctx.rotate(q[3]); ctx.beginPath();
+        ctx.ellipse(0,0,q[2],q[2]*.75,0,0,6.283); ctx.fillStyle="#3A1D12"; ctx.fill(); ctx.restore(); });
+      ctx.restore();
+    }
+    function desenhar(){ ctx.clearRect(0,0,W,H); cookies.forEach(cookie); }
+    function passo(){
+      if (!rodando) return;
+      cookies.forEach(c=>{
+        c.x += c.vx; c.y += c.vy; c.rot += c.vr;
+        if (c.y < -c.r*2){ c.y = H + c.r*2; c.x = Math.random()*W; }
+        if (c.x < -c.r*2) c.x = W + c.r*2; if (c.x > W + c.r*2) c.x = -c.r*2;
+        const dx = (c.x+c.ox)-ponteiro.x, dy = (c.y+c.oy)-ponteiro.y, d = Math.hypot(dx,dy), alcance = 140 + c.r;
+        if (d < alcance && d > .1){ const f = (1-d/alcance)*1.6; c.vox += dx/d*f; c.voy += dy/d*f; }
+        c.vox += -c.ox*.03; c.voy += -c.oy*.03; c.vox *= .88; c.voy *= .88; c.ox += c.vox; c.oy += c.voy;
+      });
+      desenhar(); requestAnimationFrame(passo);
+    }
+    window.addEventListener("pointermove", e=>{ ponteiro.x=e.clientX; ponteiro.y=e.clientY; }, {passive:true});
+    window.addEventListener("pointerdown", e=>{ ponteiro.x=e.clientX; ponteiro.y=e.clientY; }, {passive:true});
+    window.addEventListener("pointerup", ()=>{ ponteiro.x=-999; ponteiro.y=-999; }, {passive:true});
+    window.addEventListener("resize", medir);
+    document.addEventListener("visibilitychange", ()=>{ rodando = !document.hidden; if (rodando && !parado) requestAnimationFrame(passo); });
+    medir(); if (!parado) requestAnimationFrame(passo);
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
