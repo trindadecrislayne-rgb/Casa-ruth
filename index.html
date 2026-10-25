@@ -747,6 +747,10 @@ function montarIngProprio(nome, q, u){
   if (u === "un" || (ex && ex.unidade === "un")) return { n:nome, unidade:"un", qtd:q, porCookie:true, proprio:true };
   return { n:nome, g:q, unidade:"kg", porCookie:true, proprio:true, tamTipico:(ex && ex.tamTipico) || 1000 };
 }
+// Embalagem de produto: ligada ao cadastro pelo nome. Estes ajudantes evitam nome escrito diferente.
+function normNome(t){ return String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
+function acharEmbalagem(nome){ const k = normNome(nome); const it = k ? itensExtras.find(x=>normNome(x.nome) === k) : null; return it ? it.nome : null; }
+function embTemPreco(nome){ const it = itensExtras.find(x=>x.nome === nome); return !!it && parseFloat(it.precoUnitario) > 0; }
 function textoQtdIng(i){ return i.unidade === "un" ? (i.qtd + " un") : (i.g + " g"); }
 function renderProdutosNovos(grade){
   // um cartão para cada produto já cadastrado
@@ -756,6 +760,8 @@ function renderProdutosNovos(grade){
     const preco = parseFloat(precosVenda[p.id]);
     const linhasIng = p.recheio.map(i=>`<tr><td>${esc(i.n)}</td><td class="qty">${textoQtdIng(i)}</td></tr>`).join("");
     const linhasEmb = p.emb.map(e=>`<tr><td>${esc(e.nome)}</td><td class="qty">${esc(String(e.qtd))} un</td></tr>`).join("");
+    const embSem = p.emb.filter(e=>!embTemPreco(e.nome)).map(e=>e.nome);
+    const avisoEmb = embSem.length ? `<div style="font-size:.85rem; color:var(--neg); margin:.4rem 0;">Atenção: ${embSem.map(esc).join(", ")} ainda ${embSem.length > 1 ? "não têm" : "não tem"} preço. Lance a compra em Comprar; até lá o custo fica sem ${embSem.length > 1 ? "elas" : "ela"}.</div>` : "";
     const pode = !produtoTemMovimento(p.id);
     div.innerHTML = `
       <h2>${esc(p.nome)}</h2>
@@ -763,6 +769,7 @@ function renderProdutosNovos(grade){
       <table>${tableHead()}<tbody>${linhasIng || `<tr><td colspan="2" style="opacity:.7;">Sem ingrediente a mais.</td></tr>`}</tbody></table>
       <div class="sub" style="margin-top:.7rem;">Embalagem de cada unidade</div>
       <table><tbody>${linhasEmb || `<tr><td style="opacity:.7;">Usa a embalagem padrão dos cookies.</td></tr>`}</tbody></table>
+      ${avisoEmb}
       <div class="acoes" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
         <button class="btn-sec" data-edit-prod="${esc(p.id)}" type="button">Editar produto</button>
         ${pode
@@ -800,9 +807,13 @@ function renderProdutosNovos(grade){
         <button id="np-ing-add" type="button" class="btn-sec">+ ingrediente</button>
       </div>
       <strong style="font-size:.9rem;">Embalagem do produto</strong>
-      ${novoProd.emb.length ? `<ul style="margin:0; padding-left:1.1rem; font-size:.9rem; display:grid; gap:.35rem;">${novoProd.emb.map((e,k)=>`<li>${esc(e.nome)}: <input type="number" step="1" min="1" inputmode="numeric" data-np-q-emb="${k}" value="${esc(String(e.qtd))}" style="${nIn}"> un <button type="button" class="btn-sec" data-np-del-emb="${k}" style="padding:.1rem .6rem; margin-left:.4rem;">tirar</button></li>`).join("")}</ul>` : ""}
+      ${novoProd.emb.length ? `<ul style="margin:0; padding-left:1.1rem; font-size:.9rem; display:grid; gap:.35rem;">${novoProd.emb.map((e,k)=>`<li>${esc(e.nome)}${embTemPreco(e.nome) ? "" : ` <span style="color:var(--neg); font-size:.8rem;">(sem preço)</span>`}: <input type="number" step="1" min="1" inputmode="numeric" data-np-q-emb="${k}" value="${esc(String(e.qtd))}" style="${nIn}"> un <button type="button" class="btn-sec" data-np-del-emb="${k}" style="padding:.1rem .6rem; margin-left:.4rem;">tirar</button></li>`).join("")}</ul>` : ""}
       <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-        <input id="np-emb-n" list="np-emb-lista" type="text" placeholder="Embalagem (ex.: pote de marmita, papel craft)" style="${CK_INPUT} flex:2; min-width:140px;">
+        <select id="np-emb-sel" style="${CK_INPUT} flex:2; min-width:140px;">
+          ${itensExtras.map(it=>`<option value="${esc(it.nome)}">${esc(it.nome)}${embTemPreco(it.nome) ? "" : " (sem preço)"}</option>`).join("")}
+          <option value="__nova"${itensExtras.length ? "" : " selected"}>Embalagem nova...</option>
+        </select>
+        <input id="np-emb-n" type="text" placeholder="Nome da embalagem nova (ex.: pote de marmita)" style="${CK_INPUT} flex:2; min-width:140px; ${itensExtras.length ? "display:none;" : ""}">
         <input id="np-emb-q" type="number" step="1" min="1" inputmode="numeric" value="1" style="${CK_INPUT} flex:1; min-width:70px;">
         <button id="np-emb-add" type="button" class="btn-sec">+ embalagem</button>
       </div>
@@ -831,10 +842,18 @@ function renderProdutosNovos(grade){
     if (!n || isNaN(v) || v <= 0){ novoProd.msg = "Escreva o ingrediente e quanto vai em cada unidade."; render(); return; }
     novoProd.ing.push(montarIngProprio(n, v, q("np-ing-u").value)); novoProd.msg = ""; render();
   });
+  q("np-emb-sel").addEventListener("change", e=>{ q("np-emb-n").style.display = e.target.value === "__nova" ? "" : "none"; });
   q("np-emb-add").addEventListener("click", ()=>{
-    const n = q("np-emb-n").value.trim(), v = parseFloat(q("np-emb-q").value);
-    if (!n || isNaN(v) || v <= 0){ novoProd.msg = "Escreva a embalagem e quantas vão em cada unidade."; render(); return; }
-    novoProd.emb.push({ nome:n, qtd:v }); novoProd.msg = ""; render();
+    const sel = q("np-emb-sel").value, v = parseFloat(q("np-emb-q").value);
+    let n = sel === "__nova" ? q("np-emb-n").value.trim() : sel, aviso = "";
+    if (!n || isNaN(v) || v <= 0){ novoProd.msg = "Escolha a embalagem (ou escreva o nome da nova) e quantas vão em cada unidade."; render(); return; }
+    if (sel === "__nova"){
+      const igual = acharEmbalagem(n);
+      if (igual){ aviso = `Já existe a embalagem "${igual}", então usei ela.`; n = igual; }
+      else aviso = `"${n}" é uma embalagem nova e ainda não tem preço. Depois de salvar, lance a compra dela em Comprar.`;
+    }
+    if (novoProd.emb.some(x=>x.nome === n)){ novoProd.msg = `"${n}" já está na lista deste produto. Mude a quantidade nela.`; render(); return; }
+    novoProd.emb.push({ nome:n, qtd:v }); novoProd.msg = aviso; render();
   });
   f.querySelectorAll("[data-np-del-ing]").forEach(b=> b.addEventListener("click", ()=>{ novoProd.ing.splice(parseInt(b.dataset.npDelIng), 1); render(); }));
   f.querySelectorAll("[data-np-del-emb]").forEach(b=> b.addEventListener("click", ()=>{ novoProd.emb.splice(parseInt(b.dataset.npDelEmb), 1); render(); }));
