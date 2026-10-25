@@ -759,7 +759,7 @@ function renderProdutosNovos(grade){
     const pode = !produtoTemMovimento(p.id);
     div.innerHTML = `
       <h2>${esc(p.nome)}</h2>
-      <div class="sub">Usa a massa de ${p.massaQtd > 0 ? p.massaQtd : 1} cookie(s) em cada unidade${!isNaN(preco) ? " · venda " + brl(preco) : " · falta o preço de venda"}</div>
+      <div class="sub">Em cada unidade: a massa de ${p.massaQtd > 0 ? p.massaQtd : 1} cookie(s)${p.recheio.length ? " + " + p.recheio.map(i=>textoQtdIng(i) + " de " + esc(i.n)).join(" + ") : ""}${!isNaN(preco) ? " · venda " + brl(preco) : " · falta o preço de venda"}</div>
       <table>${tableHead()}<tbody>${linhasIng || `<tr><td colspan="2" style="opacity:.7;">Sem ingrediente a mais.</td></tr>`}</tbody></table>
       <div class="sub" style="margin-top:.7rem;">Embalagem de cada unidade</div>
       <table><tbody>${linhasEmb || `<tr><td style="opacity:.7;">Usa a embalagem padrão dos cookies.</td></tr>`}</tbody></table>
@@ -787,10 +787,11 @@ function renderProdutosNovos(grade){
     <datalist id="np-emb-lista">${itensExtras.map(i=>`<option value="${esc(i.nome)}">`).join("")}</datalist>
     <div style="display:grid; gap:.6rem; max-width:560px;">
       <input id="np-nome" type="text" placeholder="Nome do produto (ex.: Marmita de Cookie)" value="${esc(novoProd.nome)}" style="${inp}">
-      <div class="sub" style="margin:0;">Quanta massa de cookie vai em cada unidade? (em cookies: 4 quer dizer a massa de 4 cookies)</div>
+      <div class="sub" style="margin:0;">Quanta massa de cookie vai em cada unidade? Escreva em cookies: 2 quer dizer a massa de 2 cookies. O app multiplica a massa-base por esse número (manteiga, farinha, ovo, chocolate e açúcar).</div>
       <input id="np-massa" type="number" step="0.5" min="0" inputmode="decimal" value="${esc(novoProd.massaQtd)}" style="${inp}">
       <input id="np-preco" type="number" step="0.01" inputmode="decimal" placeholder="Preço de venda (R$)" value="${esc(novoProd.preco)}" style="${inp}">
       <strong style="font-size:.9rem;">Ingredientes a mais (por unidade)</strong>
+      <div class="sub" style="margin:0;">Escreva o <b>total que vai em cada unidade inteira</b>. Exemplo: se a marmita toda leva 86 g de Nutella, escreva 86. O app <b>não</b> multiplica esse número pela massa.</div>
       ${novoProd.ing.length ? `<ul style="margin:0; padding-left:1.1rem; font-size:.9rem; display:grid; gap:.35rem;">${novoProd.ing.map((i,k)=>`<li>${esc(i.n)}: <input type="number" step="0.1" inputmode="decimal" data-np-q-ing="${k}" value="${i.unidade === "un" ? i.qtd : i.g}" style="${nIn}"> ${i.unidade === "un" ? "un" : "g"} <button type="button" class="btn-sec" data-np-del-ing="${k}" style="padding:.1rem .6rem; margin-left:.4rem;">tirar</button></li>`).join("")}</ul>` : ""}
       <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
         <input id="np-ing-n" list="np-ing-lista" type="text" placeholder="Ingrediente" style="${CK_INPUT} flex:2; min-width:140px;">
@@ -1989,8 +1990,8 @@ function renderPreco(){
       <div class="sub">Só ingredientes e embalagem (sem as contas fixas). Toque no sabor para abrir.</div>
       ${sabores.map(s=>{
         const d = detalheCustoSabor(s);
-        return `<details style="margin-top:0.5rem;"><summary style="cursor:pointer; font-weight:600;">${esc(NOME_SABOR[s.id] || s.nome)} — ${d.total === null ? "falta preço ou gramatura" : brlUn(d.total) + " por cookie"}</summary>
-          <table class="tabela-real" style="margin-top:0.4rem;"><thead><tr><th>Ingrediente</th><th class="qty">Usa por cookie</th><th class="price">Custa</th></tr></thead><tbody>${
+        return `<details style="margin-top:0.5rem;"><summary style="cursor:pointer; font-weight:600;">${esc(NOME_SABOR[s.id] || s.nome)} — ${d.total === null ? "falta preço ou gramatura" : brlUn(d.total) + (s.extra ? " por unidade" : " por cookie")}</summary>
+          <table class="tabela-real" style="margin-top:0.4rem;"><thead><tr><th>Ingrediente</th><th class="qty">${s.extra ? "Usa em cada unidade" : "Usa por cookie"}</th><th class="price">Custa</th></tr></thead><tbody>${
             d.linhas.map(l=>`<tr><td>${esc(l.nome)}</td><td class="qty">${l.usa}</td><td class="price">${l.custo === null ? `<span style="color:var(--wine);">sem preço</span>` : brlUn(l.custo)}</td></tr>`).join("")
           }<tr><td><b>Total</b></td><td></td><td class="price"><b>${d.total === null ? "—" : brlUn(d.total)}</b></td></tr></tbody></table>
         </details>`;
